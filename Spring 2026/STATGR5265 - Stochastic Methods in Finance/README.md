@@ -1,33 +1,24 @@
 # STATGR5265 — Stochastic Methods in Finance
 
 **Term:** Spring 2026  
-**Archive type:** Canvas Files export  
-**Original files:** 29
+**Archive type:** Canvas Files export
 
-## Course focus
+## Overview
 
-This course applies stochastic calculus to mathematical finance. The syllabus identifies three units:
+Stochastic methods for finance, with emphasis on risk-neutral pricing, PDEs, interest-rate models, American options, and portfolio optimization.
 
-1. **Stochastic calculus and risk-neutral pricing of European options**
-2. **PDEs in mathematical finance and interest-rate models**
-3. **American options and portfolio optimization**
+## Contents
 
-The course listing uses both STAT GU4265 and STAT GR5265 for the same section. This archive preserves the GR5265 Canvas folder name.
+Lecture notes, assignments, practice problems, assessment material, and computational/reference files are preserved with their original filenames. The syllabus and lecture sequence should be used as the primary course guide.
 
-## Module map
+## Textbook references
 
-| Area | Contents |
-| --- | --- |
-| Lecture sequence | [`Lecture00Slides.pdf`](Lecture00Slides.pdf), [`STAT5265_Lecture_Notes.pdf`](STAT5265_Lecture_Notes.pdf), [`STAT5264_Lecture_Notes.pdf`](STAT5264_Lecture_Notes.pdf), and [`ListOfLectures5265.pdf`](ListOfLectures5265.pdf) |
-| Problem sets | PSet 0 through PSet 6, with retained solution files |
-| Practice assessments | Practice midterms 1–3 and corresponding solutions |
-| Assessments | Midterm front page and three midterm solution files |
-| Course reference | [`STAT5265Spring2025Syllabus.pdf`](STAT5265Spring2025Syllabus.pdf), retained with its exported filename |
+- Steven E. Shreve, *Stochastic Calculus for Finance II: Continuous-Time Models* — ISBN 9780387401003.
+- Marek Musiela and Marek Rutkowski, *Martingale Methods in Financial Modelling*, 2nd edition — ISBN 9783540209669.
+- Monique Jeanblanc, Marc Yor, and Marc Chesney, *Mathematical Methods for Financial Markets* — ISBN 9781447125242.
 
-## Suggested study path
+The local Columbia MAFN directory contains copies matching these references. The full textbook files are not included here because redistribution rights were not verified.
 
-Use the lecture notes and list of lectures as the primary sequence. Pair each problem set with the relevant unit, then use practice midterms before the assessment material. The syllabus is authoritative for dates, prerequisites, grading, and policies.
+## Access note
 
-## Related textbooks found locally
-
-The local Columbia MAFN workspace contains Shreve’s *Stochastic Calculus for Finance II*, Musiela and Rutkowski’s *Martingale Methods in Financial Modelling*, and Jeanblanc, Yor, and Chesney’s *Mathematical Methods for Financial Markets*. See the root [TEXTBOOK_CATALOG.md](../../TEXTBOOK_CATALOG.md) for source metadata and rights-aware integration status. The full-book files were not copied into this repository.
+Keep assessment, solution, and third-party reference materials private.

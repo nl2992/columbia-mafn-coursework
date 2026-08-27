@@ -1,37 +1,36 @@
 # STATGR5264 — Stochastic Processes: Applications I
 
 **Term:** Fall 2025  
-**Archive type:** Canvas Files export  
-**Original files:** 48
+**Archive type:** Canvas Files export
 
-## Course focus
+## Overview
 
-The syllabus organizes this course into three units:
+The course is organized into three units:
 
-1. **Brownian motion and basics of stochastic processes**
-2. **Stochastic calculus**
-3. **Change of measure and applications to finance**
+1. Brownian motion and fundamentals of stochastic processes
+2. Stochastic calculus
+3. Change of measure and applications to finance
 
-The course listing uses both STAT GU4264 and STAT GR5264 for the same section. This archive preserves the GR5264 Canvas folder name.
+The course listing also uses STAT GU4264; this archive preserves the GR5264 Canvas folder name.
 
-## Module map
+## Contents
 
-| Area | Contents |
-| --- | --- |
-| Lectures | `Lecture0Slides.pdf` and `Lecture01.pdf` through `Lecture20.pdf` |
-| Problem sets | `STAT5264PSet1.pdf` through `STAT5264PSet6.pdf` |
-| Practice assessments | Practice midterm files and corresponding solutions |
-| Assessments | Fall 2024 and Fall 2025 midterm materials, including solutions |
-| Course reference | [`STAT5264Fall2025Syllabus.pdf`](STAT5264Fall2025Syllabus.pdf) and [`ListofLecturesFall2025.pdf`](ListofLecturesFall2025.pdf) |
+- **Lectures:** `Lecture0Slides.pdf` and `Lecture01.pdf` through `Lecture20.pdf`
+- **Problem sets:** `STAT5264PSet1.pdf` through `STAT5264PSet6.pdf`
+- **Practice assessments:** practice midterms and solutions
+- **Assessments:** Fall 2024 and Fall 2025 midterm materials
+- **Course reference:** syllabus and lecture list PDFs
 
-## Suggested study path
+Follow the lecture sequence, pair each unit with its problem sets, and use the practice assessments before the exam materials.
 
-Use the lecture sequence as the primary spine. Pair each block of lectures with the corresponding problem set, then use practice midterms before the assessment files. The syllabus is authoritative for the course schedule, grading, prerequisites, and policies.
+## Textbook references
 
-## Archive notes
+- T. Björk, *Arbitrage Theory in Continuous Time*, 4th edition — ISBN 9780192592446.
+- Ioannis Karatzas and Steven E. Shreve, *Brownian Motion and Stochastic Calculus*, 2nd edition — ISBN 9780387976556.
+- Steven E. Shreve, *Stochastic Calculus for Finance II: Continuous-Time Models* — ISBN 9780387401003.
 
-This module contains both current and prior-year practice/assessment files. Their year is part of the filename and should be treated as meaningful metadata.
+The local Columbia MAFN directory contains copies matching these references. The full textbook files are not included here because redistribution rights were not verified.
 
-## Related textbooks found locally
+## Access note
 
-The local Columbia MAFN workspace contains Björk’s *Arbitrage Theory in Continuous Time*, Karatzas and Shreve’s *Brownian Motion and Stochastic Calculus*, and Shreve’s *Stochastic Calculus for Finance II*. See the root [TEXTBOOK_CATALOG.md](../../TEXTBOOK_CATALOG.md) for source metadata and rights-aware integration status. The full-book files were not copied into this repository.
+The archive includes prior-year practice and assessment materials. Keep all source and solution files private.

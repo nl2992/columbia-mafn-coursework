@@ -1,8 +1,13 @@
 # GSAS Fall 2025 Orientation
 
-**Archive type:** Program-wide Canvas materials  
-**Original files:** 3
+**Archive type:** Program-wide Canvas materials
 
-This small asset bundle contains orientation imagery and course-image files. It is kept separate from academic course materials because the files are program-wide branding/orientation assets rather than instructional modules.
+## Contents
 
-The `course_image/` subdirectory contains the two image variants exported with the bundle; the root image is retained exactly as downloaded.
+Orientation imagery and related course-image assets exported with the Fall 2025 GSAS orientation bundle.
+
+The image files are retained in the `course_image/` directory with their original names.
+
+## Access note
+
+These are institutional and program materials. Keep them private and follow any applicable Columbia or GSAS usage restrictions.

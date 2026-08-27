@@ -1,35 +1,29 @@
 # MATH5050 — Practitioners Seminar
 
 **Term:** Fall 2025  
-**Archive type:** Canvas Files export  
-**Original files:** 13
+**Archive type:** Canvas Files export
 
-## Purpose
+## Overview
 
-This module collects practitioner-led seminar material from quantitative finance, trading, fintech, securitization, volatility, and fixed-income professionals. Most sessions include presentation slides or reading material rather than programming exercises.
+Practitioner-led sessions covering quantitative research, high-frequency trading, fintech, mortgage securitization, rough volatility, residual analysis, and corporate-bond trading.
 
-## Sessions
+## Session map
 
-| Date | Speaker / topic area | Files |
-| --- | --- | ---: |
-| 03 Sep | Nathaniel Powell — quantitative research and regression models | 3 |
-| 10 Sep | Igor Halperin — Marketron model | 2 |
-| 17 Sep | Christina Qi — HFT, fintech, entrepreneurship, and risk-taking | 1 |
-| 24 Sep | Jeong Lee — seminar presentation | 1 |
-| 01 Oct | Jae Ho Kim — seminar presentation | 1 |
-| 08 Oct | Manoj Singh — mortgage securitization | 1 |
-| 15 Oct | Johnny Lee — MAFN presentation | 1 |
-| 22 Oct | Jim Gatheral — rough volatility | 1 |
-| 05 Nov | Dimitri Bianco — residuals | 1 |
-| 19 Nov | Darren Clipston — corporate bond trading | 1 |
+| Date | Speaker / topic |
+| --- | --- |
+| 03 Sep | Nathaniel Powell — quantitative research and large regression models |
+| 10 Sep | Igor Halperin — Marketron model |
+| 17 Sep | Christina Qi — HFT, fintech, entrepreneurship, and risk-taking |
+| 24 Sep | Jeong Lee — seminar presentation |
+| 01 Oct | Jae Ho Kim — seminar presentation |
+| 08 Oct | Manoj Singh — mortgage securitization |
+| 15 Oct | Johnny Lee — MAFN presentation |
+| 22 Oct | Jim Gatheral — rough volatility |
+| 05 Nov | Dimitri Bianco — residuals |
+| 19 Nov | Darren Clipston — corporate-bond trading |
 
-Each dated speaker directory is a self-contained session bundle. The directory names are retained from the Canvas export so the calendar order is immediately visible.
+Each dated folder contains the materials for one session. Editable slide decks and exported PDFs are preserved together.
 
-## File formats
+## Access note
 
-- PDF: readings and exported presentation material.
-- PPTX: editable slide decks for selected sessions.
-
-## Notes
-
-Speaker materials may be copyrighted or distributed under event- or institution-specific terms. Keep this module private and do not treat the files as an open publication set.
+These are speaker, institutional, and event materials. Keep the course private and follow any restrictions attached to the source files.

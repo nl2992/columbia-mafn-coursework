@@ -1,17 +1,14 @@
 # MATHGR5320 — Financial Risk Management and Regulation
 
 **Term:** Spring 2026  
-**Archive type:** Canvas Files export  
-**Original files:** 1
+**Archive type:** Canvas Files export
 
 ## Contents
 
-The export contains the course syllabus only: [`syllabus.pdf`](syllabus.pdf). The syllabus describes a thirteen-lecture overview of financial risk management and regulation, including market structure, VaR, potential future exposure, expected exposure, credit exposure, CVA, regulatory practices, and case studies of risk-management failures.
+This export contains the course syllabus only. Its thirteen-lecture scope includes market structure, value-at-risk, potential and expected exposure, credit exposure, CVA, regulatory practice, and financial-risk case studies.
 
-## Archive boundary
+No lecture notes, homework, projects, or supplementary readings were present in the Canvas Files export.
 
-No lecture notes, homework, project files, or supplementary readings were present in this Canvas Files export. This README documents the scope so the module is not mistaken for a complete course repository.
+## Access note
 
-## Rights
-
-The syllabus includes an explicit “Do not distribute” notice. Keep this module private and follow the source document’s restrictions.
+The syllabus contains an explicit “Do not distribute” notice. Keep this course private and follow the source document's restrictions.

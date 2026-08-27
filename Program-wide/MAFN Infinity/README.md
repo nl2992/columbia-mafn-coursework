@@ -1,13 +1,14 @@
 # MAFN Infinity
 
-**Archive type:** Program-wide Canvas materials  
-**Original files:** 15
+**Archive type:** Program-wide Canvas materials
 
-This module contains MAFN program branding/course imagery and a cross-course syllabus list.
+## Contents
 
-| Area | Contents |
-| --- | --- |
-| [`Syllabus List/`](<Syllabus List/>) | Syllabi for related MAFN and finance courses, useful as a cross-course reference index |
-| [`course_image/`](<course_image/>) | Program/course image assets |
+- **Syllabus List/**: cross-course syllabi for MAFN and related finance offerings
+- **course_image/**: MAFN and Columbia program image assets
 
-The syllabus list is a reference collection rather than a substitute for the term-specific course folders. Keep source and institutional materials private.
+The syllabus collection is a cross-course reference only; term-specific course folders remain the authoritative source for course policies and dates.
+
+## Access note
+
+Keep institutional, branding, and syllabus materials private.
