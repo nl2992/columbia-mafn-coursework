@@ -1,0 +1,46 @@
+# Operating-system metadata
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+Desktop.ini
+
+# Editors and IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+*.tmp
+*.bak
+
+# Python and Jupyter
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ipynb_checkpoints/
+.venv/
+venv/
+env/
+ENV/
+
+# Local configuration and credentials
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+credentials.json
+secrets.json
+
+# MATLAB / Octave generated state
+*.asv
+*.autosave
+octave-workspace
+
+# Generated exports and local scratch areas
+dist/
+build/
+out/
+coverage/
+scratch/
