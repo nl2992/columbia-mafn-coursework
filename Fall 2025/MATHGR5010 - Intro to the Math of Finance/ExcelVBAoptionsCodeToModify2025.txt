@@ -1,0 +1,74 @@
+
+
+
+
+Global Const Pi = 3.14159265358979
+
+Option Explicit     'Requirs that all variables to be declared explicitly.
+Option Compare Text 'Uppercase letters to be equivalent to lowercase letters.
+
+Option Base 1       'The "Option Base" statment alowws to specify 0 or 1 as the
+                    'default first index of arrays.
+                    
+
+
+
+'// The normal distribution function
+Public Function ND(X As Double) As Double
+    ND = 1 / Sqr(2 * Pi) * Exp(-X ^ 2 / 2)
+End Function
+
+
+'// The cumulative normal distribution function
+Public Function CND(X As Double) As Double
+    
+    Dim L As Double, K As Double
+    Const a1 = 0.31938153:  Const a2 = -0.356563782: Const a3 = 1.781477937:
+    Const a4 = -1.821255978:  Const a5 = 1.330274429
+    
+    L = Abs(X)
+    K = 1 / (1 + 0.2316419 * L)
+    CND = 1 - 1 / Sqr(2 * Pi) * Exp(-L ^ 2 / 2) * (a1 * K + a2 * K ^ 2 + a3 * K ^ 3 + a4 * K ^ 4 + a5 * K ^ 5)
+    
+    If X < 0 Then
+        CND = 1 - CND
+    End If
+End Function
+
+
+
+'// Black (1977) Options on futures/forwards
+Public Function Black76(CallPutFlag As String, F As Double, X _
+                As Double, T As Double, r As Double, v As Double) As Double
+                
+    Dim d1 As Double, d2 As Double
+    
+    d1 = (Log(F / X) + (v ^ 2 / 2) * T) / (v * Sqr(T))
+    d2 = d1 - v * Sqr(T)
+    If CallPutFlag = "c" Then
+        Black76 = Exp(-r * T) * (F * CND(d1) - X * CND(d2))
+    ElseIf CallPutFlag = "p" Then
+        Black76 = Exp(-r * T) * (X * CND(-d2) - F * CND(-d1))
+    End If
+End Function
+
+
+'// Normal Model Options on futures/forwards
+
+Public Function NormFutOpt(CallPutFlag As String, F As Double, X As Double, T As Double, r As Double, u As Double) As Double
+    Dim v As Double
+    v = u * Sqr(T)
+    If CallPutFlag = "c" Then
+         NormFutOpt = Exp(-r * T) * ((v * Exp((-(F - X) ^ 2) / (2 * v * v))) / Sqr(2 * Pi) + (F - X) * CND((F - X) / v))
+        
+        
+        ElseIf CallPutFlag = "p" Then
+         NormFutOpt = Exp(-r * T) * ((v * Exp((-(F - X) ^ 2) / (2 * v * v))) / Sqr(2 * Pi) + (X - F) * CND((X - F) / v))
+    End If
+End Function
+
+
+
+
+
+
