@@ -33,6 +33,29 @@ This archive contains the course syllabus plus page-for-page slide captures from
 
 The source folder contained PDFs; no native PowerPoint files were present. The stitched PDFs are generated from the corresponding JPEG screenshots.
 
+### Problem sets
+
+The shared `Assignments/ProblemSets` folder was captured using the same page-by-page workflow. It contains 28 screenshots across 11 PDF files:
+
+- `problem_set_screenshots/<hw>/slide-###.jpg` - page screenshots in source order.
+- `problem_set_screenshots/pdfs/<hw>.pdf` - one stitched PDF per homework file.
+
+| File | Pages |
+| --- | ---: |
+| hw01 | 3 |
+| hw02 | 2 |
+| hw03 | 3 |
+| hw04 | 3 |
+| hw05 | 3 |
+| hw06 | 2 |
+| hw07 | 2 |
+| hw08 | 2 |
+| hw09 | 3 |
+| hw10 | 3 |
+| hw11 | 2 |
+
+The separate `Data` subfolder was left untouched because it is not a PDF or slide file. No OCR, text extraction, or content analysis was performed.
+
 ## Access note
 
 The syllabus contains an explicit “Do not distribute” notice. Keep this course private and follow the source document's restrictions.
