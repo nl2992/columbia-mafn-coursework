@@ -9,6 +9,8 @@ This archive contains the course syllabus plus page-for-page slide captures from
 
 ### Files
 
+All 1,252 JPEG captures have been stitched into 37 corresponding PDFs, preserving the capture order within each source folder.
+
 - `syllabus.pdf` - course syllabus.
 - `slide_screenshots/<deck>/slide-###.jpg` - 1,063 slide screenshots across 15 source decks.
 - `slide_screenshots/pdfs/<deck>.pdf` - one stitched PDF per source deck, preserving slide order.
