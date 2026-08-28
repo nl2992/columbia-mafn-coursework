@@ -56,6 +56,29 @@ The shared `Assignments/ProblemSets` folder was captured using the same page-by-
 
 The separate `Data` subfolder was left untouched because it is not a PDF or slide file. No OCR, text extraction, or content analysis was performed.
 
+### Solutions
+
+The shared `Assignments/Solutions` folder was captured using the same page-by-page workflow. It contains 161 screenshots across 11 answer PDFs:
+
+- `solution_screenshots/<hw>ans/slide-###.jpg` - page screenshots in source order.
+- `solution_screenshots/pdfs/<hw>ans.pdf` - one stitched PDF per answer file.
+
+| File | Pages |
+| --- | ---: |
+| hw01ans | 5 |
+| hw02ans | 4 |
+| hw03ans | 9 |
+| hw04ans | 11 |
+| hw05ans | 19 |
+| hw06ans | 22 |
+| hw07ans | 9 |
+| hw08ans | 12 |
+| hw09ans | 12 |
+| hw10ans | 6 |
+| hw11ans | 52 |
+
+The separate `Code` subfolder was left untouched because it is not a PDF or slide file. No OCR, text extraction, or content analysis was performed.
+
 ## Access note
 
 The syllabus contains an explicit “Do not distribute” notice. Keep this course private and follow the source document's restrictions.
