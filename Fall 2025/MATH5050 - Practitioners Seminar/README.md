@@ -22,7 +22,7 @@ Practitioner-led sessions covering quantitative research, high-frequency trading
 | 05 Nov | Dimitri Bianco — residuals |
 | 19 Nov | Darren Clipston — corporate-bond trading |
 
-Each dated folder contains the materials for one session. Editable slide decks and exported PDFs are preserved together.
+The session folders are grouped under [`sessions/`](sessions/). Each dated folder contains the materials for one session, with editable slide decks and exported PDFs preserved together.
 
 ## Access note
 

@@ -9,7 +9,13 @@ Stochastic methods for finance, with emphasis on risk-neutral pricing, PDEs, int
 
 ## Contents
 
-Lecture notes, assignments, practice problems, assessment material, and computational/reference files are preserved with their original filenames. The syllabus and lecture sequence should be used as the primary course guide.
+- [`lectures/`](lectures/): lecture slides, lecture notes, and the lecture list
+- [`assignments/`](assignments/): problem sets 0–6
+- [`solutions/`](solutions/): problem-set and midterm solutions
+- [`assessments/`](assessments/): practice midterms and the midterm front page
+- [`reference/`](reference/): Spring 2025 syllabus
+
+The lecture sequence and syllabus should be used as the primary course guide. Original filenames and source variants are preserved.
 
 ## Textbook references
 

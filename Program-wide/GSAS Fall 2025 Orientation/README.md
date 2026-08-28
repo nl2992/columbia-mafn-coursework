@@ -4,9 +4,7 @@
 
 ## Contents
 
-Orientation imagery and related course-image assets exported with the Fall 2025 GSAS orientation bundle.
-
-The image files are retained in the `course_image/` directory with their original names.
+Orientation imagery and related course-image assets exported with the Fall 2025 GSAS orientation bundle are retained in [`assets/`](assets/).
 
 ## Access note
 

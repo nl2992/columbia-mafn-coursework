@@ -15,11 +15,11 @@ The course listing also uses STAT GU4264; this archive preserves the GR5264 Canv
 
 ## Contents
 
-- **Lectures:** `Lecture0Slides.pdf` and `Lecture01.pdf` through `Lecture20.pdf`
-- **Problem sets:** `STAT5264PSet1.pdf` through `STAT5264PSet6.pdf`
-- **Practice assessments:** practice midterms and solutions
-- **Assessments:** Fall 2024 and Fall 2025 midterm materials
-- **Course reference:** syllabus and lecture list PDFs
+- [`lectures/`](lectures/): `Lecture0Slides.pdf`, `Lecture01.pdf` through `Lecture20.pdf`, and the lecture list
+- [`assignments/`](assignments/): `STAT5264PSet1.pdf` through `STAT5264PSet6.pdf`
+- [`solutions/`](solutions/): problem-set and midterm solutions
+- [`assessments/`](assessments/): practice assessments and midterm problem/front-page files
+- [`reference/`](reference/): Fall 2025 syllabus
 
 Follow the lecture sequence, pair each unit with its problem sets, and use the practice assessments before the exam materials.
 

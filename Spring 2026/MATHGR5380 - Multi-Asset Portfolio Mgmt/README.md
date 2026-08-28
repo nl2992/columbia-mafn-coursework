@@ -9,13 +9,10 @@ Portfolio design, analysis, and implementation across equities, rates, commoditi
 
 ## Course map
 
-- Return statistics and portfolio foundations
-- Bayesian investing and Black–Litterman
-- Factor and risk models, Barra/MSCI material, and risk decomposition
-- Strategic asset allocation, tilts, optimization, and transaction costs
-- Performance attribution and portfolio diagnostics
-- Momentum, carry, regime shifts, GTAA, and dynamic allocation
-- Homework, quizzes, solution workbooks, and supporting `.tex` source
+- [`lectures/`](lectures/): course logistics, return statistics, Bayesian investing, Black–Litterman, factor/risk models, asset classes, SAA, GTAA, attribution, and implementation
+- [`assignments/`](assignments/): homework and quiz PDFs plus [`workbooks/`](assignments/workbooks/) for exercise and solution spreadsheets
+- [`readings/`](readings/): academic, institutional, and practitioner references
+- [`source/`](source/): retained LaTeX source
 
 Alternative and updated source variants are preserved where the export does not establish a canonical version.
 

@@ -9,13 +9,13 @@ Computational methods for financial mathematics, including root finding, interpo
 
 ## Course map
 
-- **Core modules:** `M1`–`M9` lecture PDFs
-- **Topics:** `T1 RiskParity`, `T2 LOOLSM`, and `T3 Dimension Analysis`
-- **HW2/:** homework brief
-- **HW3/:** basket-option paper, workbook, notebooks, and Python scaffold
-- **HW4/:** SABR notebook and `option_models/` package scaffold
-- **Exam/:** midterm problem statement and solution
-- **Reference/:** supporting research papers
+- [`lectures/`](lectures/): modules M1–M9, from scientific computing and root finding through copulas
+- [`topics/`](topics/): risk parity, leave-one-out least-squares Monte Carlo, and dimensional analysis
+- [`assignments/hw02/`](assignments/hw02/): homework brief
+- [`assignments/hw03/`](assignments/hw03/): basket-option paper, workbook, notebooks, and Python scaffold
+- [`assignments/hw04/`](assignments/hw04/): SABR notebook and [`option_models/`](assignments/hw04/option_models/) package scaffold
+- [`assessments/midterm/`](assessments/midterm/): midterm problem statement and solution
+- [`references/`](references/): supporting research papers
 
 The notebooks and Python files are instructional scaffolding; several routines are intentionally incomplete and are not production pricing libraries.
 
@@ -28,4 +28,4 @@ The local Columbia MAFN directory contains files matching these references. The 
 
 ## Technical notes
 
-Observed Python dependencies include `numpy`, `scipy`, and `pyfeng`. Use the accompanying notebooks to reproduce the exercises.
+Observed Python dependencies include `numpy`, `scipy`, and `pyfeng`. The notebooks import the adjacent `basket.py` scaffold and `option_models` package; use the accompanying notebooks to reproduce the exercises.

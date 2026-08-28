@@ -9,10 +9,13 @@ An applied introduction to mathematical finance: probability, arbitrage, futures
 
 ## Course map
 
-- **Core lectures:** `GR5010_Handout0_2025.pdf` through `GR5010_Handout17DynamicLeverage2025.pdf`
-- **Assessments:** homework, midterm, practice final, and take-home final files
-- **Computational work:** MATLAB scripts, Excel workbooks, and VBA examples
-- **Market material:** futures, volatility, negative-interest-rate, and related course readings
+- [`lectures/`](lectures/): Handouts 0–17, from probability and arbitrage through portfolio insurance and dynamic leverage
+- [`assignments/`](assignments/): homework files and the volatility-smile exercise
+- [`assessments/`](assessments/): midterm, practice final, and take-home final
+- [`computational/matlab/`](computational/matlab/): Black–Scholes and Brownian-motion scripts
+- [`computational/excel/`](computational/excel/): option, futures, Brownian-motion, volatility, and VBA workbooks
+- [`readings/`](readings/): market and course reading material
+- [`reference/`](reference/): syllabus
 
 Recommended order: syllabus and Handouts 0–4, Handouts 5–12, then Handouts 13–17. Use the MATLAB and Excel files alongside the lecture sequence.
 
@@ -25,4 +28,4 @@ The local Columbia MAFN directory contains copies matching these references. The
 
 ## Technical notes
 
-The MATLAB examples use `normcdf`; the macro-enabled Excel workbook should only be opened when the source is trusted. The syllabus remains authoritative for course policies and required readings.
+`BlackScholesGraph.m` calls `BlackScholesStocks.m`; `BrownianMotion.m` simulates Brownian-motion trajectories. The MATLAB examples use `normcdf`; the macro-enabled Excel workbook should only be opened when the source is trusted. The syllabus remains authoritative for course policies and required readings.

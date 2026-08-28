@@ -9,15 +9,19 @@ A data-intensive course covering empirical financial-price analysis, statistical
 
 ## Course map
 
-- **Course logistics:** course description and related lecture material
-- **Market data:** intraday CSV files and ZIP archives, including 1-minute and 5-minute series
-- **Empirical analysis:** volatility, variance ratios, probability densities, futures, commodities, drawdowns, CTA analysis, and transaction costs
-- **Trading research:** trend following, optimization, market impact, strategy evaluation, and portfolio/drawdown constraints
-- **Research references:** papers and lecture material retained as PDFs
-- **Visual outputs:** ticker- and statistic-specific GIF charts
-- **Code:** MATLAB and C examples, including `main.m`, `ezread.m`, `pdf-1min.c`, and `pdf-1sec.c`
+- [`lectures/`](lectures/): introductory econophysics lectures, Fourier-transform notes, and turbulence lectures
+- [`assignments/`](assignments/): homework and final-project files
+- [`experiments/trend-following/`](experiments/trend-following/): MATLAB trend-following experiment, its CSV input, related workbooks, and result PDFs
+- [`code/price-density/`](code/price-density/): C sources for price-change probability-density calculations
+- [`data/market/`](data/market/): intraday market-data CSV/ZIP files and variants
+- [`data/derived/`](data/derived/): derived numerical text data
+- [`workbooks/`](workbooks/): Excel workbooks for empirical analysis and course exercises
+- [`visuals/`](visuals/): ticker- and statistic-specific GIF charts
+- [`readings/`](readings/): research papers and supporting course material
+- [`notes/`](notes/): editable notes and trading-system documents
+- [`reference/`](reference/): course description
 
-The MATLAB entry point `main.m` reads `HO-5minHLV.csv` and runs an in-sample/out-of-sample breakout and stop-loss experiment. Original filenames and data variants are preserved.
+The MATLAB entry point `experiments/trend-following/main.m` reads the adjacent `HO-5minHLV.csv` and uses `ezread.m`; run it from that experiment directory. Original filenames and data variants are preserved.
 
 ## Textbook reference
 
