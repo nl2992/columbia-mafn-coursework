@@ -5,15 +5,14 @@
 
 ## Contents
 
-This archive contains the course syllabus plus page-for-page slide captures from the shared course folder. The slide captures were saved without OCR, text extraction, or content analysis.
+This archive is a PDF-only collection of the course syllabus, lecture slides, homework questions, and homework solutions.
 
 ### Files
 
-All 1,252 JPEG captures have been stitched into 37 corresponding PDFs, preserving the capture order within each source folder.
+All 37 retained course documents are PDFs, with one ordered PDF per source deck, question set, or solution set.
 
 - `syllabus.pdf` - course syllabus.
-- `slide_screenshots/<deck>/slide-###.jpg` - 1,063 slide screenshots across 15 source decks.
-- `slide_screenshots/pdfs/<deck>.pdf` - one stitched PDF per source deck, preserving slide order.
+- `lecture_slides/<deck>.pdf` - one PDF per source deck, preserving slide order.
 
 | Deck | Pages |
 | --- | ---: |
@@ -33,14 +32,13 @@ All 1,252 JPEG captures have been stitched into 37 corresponding PDFs, preservin
 | quant101-01 | 58 |
 | quant101-02 | 54 |
 
-The source folder contained PDFs; no native PowerPoint files were present. The stitched PDFs are generated from the corresponding JPEG screenshots.
+Files are stored under `lecture_slides/`.
 
 ### Problem sets
 
-The shared `Assignments/ProblemSets` folder was captured using the same page-by-page workflow. It contains 28 screenshots across 11 PDF files:
+The 11 homework/problem-set PDFs are stored as follows:
 
-- `problem_set_screenshots/<hw>/slide-###.jpg` - page screenshots in source order.
-- `problem_set_screenshots/pdfs/<hw>.pdf` - one stitched PDF per homework file.
+- `questions/<hw>.pdf` - one PDF per homework file.
 
 | File | Pages |
 | --- | ---: |
@@ -56,14 +54,13 @@ The shared `Assignments/ProblemSets` folder was captured using the same page-by-
 | hw10 | 3 |
 | hw11 | 2 |
 
-The separate `Data` subfolder was left untouched because it is not a PDF or slide file. No OCR, text extraction, or content analysis was performed.
+Files are stored under `questions/`.
 
 ### Solutions
 
-The shared `Assignments/Solutions` folder was captured using the same page-by-page workflow. It contains 161 screenshots across 11 answer PDFs:
+The 11 homework answer PDFs are stored as follows:
 
-- `solution_screenshots/<hw>ans/slide-###.jpg` - page screenshots in source order.
-- `solution_screenshots/pdfs/<hw>ans.pdf` - one stitched PDF per answer file.
+- `solutions/<hw>ans.pdf` - one PDF per answer file.
 
 | File | Pages |
 | --- | ---: |
@@ -79,7 +76,7 @@ The shared `Assignments/Solutions` folder was captured using the same page-by-pa
 | hw10ans | 6 |
 | hw11ans | 52 |
 
-The separate `Code` subfolder was left untouched because it is not a PDF or slide file. No OCR, text extraction, or content analysis was performed.
+Files are stored under `solutions/`.
 
 ## Access note
 
