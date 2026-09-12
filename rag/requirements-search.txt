@@ -1,0 +1,4 @@
+# Tested on macOS arm64 / Python 3.14. No hosted inference or API key needed.
+numpy==2.4.4
+onnxruntime==1.25.1
+tokenizers==0.22.2

@@ -4,6 +4,48 @@ Organized course and program materials for the Columbia MAFN coursework archive.
 
 Each course folder contains its own `README.md` with the course map, module sequence, and links to the organized materials. Source filenames and explicit version variants are preserved unless a directory name was normalized for navigation.
 
+## Local RAG research assistant
+
+This repository includes a source-grounded RAG for searching the coursework archive, inspecting the exact cited page or locator, and asking questions with a local evidence-checked Copilot. The original course files remain authoritative; the rebuildable index is intentionally ignored from Git under `.rag/`.
+
+Key features:
+
+- Hybrid lexical and offline semantic retrieval with course, term, material, lecturer, file-type, folder, and review filters.
+- Stable citations that preserve source aliases, versions, hashes, and exact PDF pages, slides, ranges, cells, or blocks.
+- Local viewer with evidence drawer, PDF page jumps and text overlays, PowerPoint slide previews, format-aware fallbacks, deep links, and coverage/review views.
+- Local Qwen3 4B Copilot with follow-up questions, pinned-document scope, review-policy warnings, exact supporting quotations, abstention, conflict presentation, and citation click-through.
+- Loopback-only service, source-hash verification, no external inference upload, and a 22-test integration suite plus live Copilot checks.
+
+### Run it stage by stage
+
+Run these commands from the repository root. Stages 1–3 create the derived ingestion records, Stage 4 builds retrieval, Stage 5 opens the citation-first viewer, and Stage 6 adds local synthesis.
+
+```bash
+# Stage 1 — inventory the archive
+python3 scripts/rag_pipeline.py inventory
+
+# Stage 2 — extract text and format-aware locators
+python3 scripts/rag_pipeline.py extract
+
+# Stage 3 — normalize, preserve provenance, and chunk
+python3 scripts/rag_pipeline.py normalize
+
+# Stage 4 — build the lexical + semantic search index
+python3 scripts/rag_search.py build
+
+# Stage 5 — start the source viewer and search API
+python3 scripts/rag_search.py serve --port 8765
+```
+
+Open [the local viewer](http://127.0.0.1:8765/) after Stage 5. To run Stages 5–6 together with the local Qwen model, stop the Stage 5 process and use:
+
+```bash
+python3 scripts/run_rag.py
+open 'http://127.0.0.1:8765/?view=copilot'
+```
+
+For a fresh machine, install the pinned search dependencies from [rag/README.md](rag/README.md), provision the local MiniLM embedding snapshot, and install/pull Ollama’s `qwen3:4b` model for Stage 6. The full API, runtime, rebuild, OCR, test, evaluation, coverage, and locator instructions are in [rag/README.md](rag/README.md); the implementation plan is in [plan.md](plan.md) and the living delivery record is in [status.md](status.md).
+
 ## Fall 2025
 
 | Course | Focus | Documentation |

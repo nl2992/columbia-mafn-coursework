@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Local Columbia Mathematics of Finance course archive search and source viewer">
+  <title>Columbia MAFN Source Library</title>
+  <link rel="stylesheet" href="/viewer/styles.css">
+  <script src="/viewer/app.js" defer></script>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="Primary navigation">
+      <div class="brand-lockup brand-logo-lockup">
+        <img class="brand-logo" src="/viewer/maf-logo.png" alt="Columbia University Mathematics of Finance MA Program">
+      </div>
+      <div class="sidebar-rule"></div>
+      <nav class="nav-stack">
+        <button class="nav-item is-active" type="button" data-view="search"><span class="nav-icon">⌕</span>Search archive</button>
+        <button class="nav-item" type="button" data-view="copilot"><span class="nav-icon">✦</span>Copilot</button>
+        <button class="nav-item" type="button" data-view="coverage"><span class="nav-icon">▥</span>Coverage</button>
+        <button class="nav-item" type="button" data-view="review"><span class="nav-icon">◌</span>Review queue</button>
+      </nav>
+      <div class="sidebar-spacer"></div>
+      <div class="index-card">
+        <div class="eyebrow">LOCAL INDEX</div>
+        <div class="index-status"><span class="status-dot" id="status-dot"></span><span id="index-status">Checking index…</span></div>
+        <div class="index-detail" id="index-detail">Private on this computer</div>
+      </div>
+      <div class="sidebar-footer">Stage 6 · grounded copilot</div>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar">
+        <div>
+          <div class="eyebrow">COLUMBIA MAFN · COURSE ARCHIVE</div>
+          <h1 id="page-title">Search the archive</h1>
+        </div>
+        <div class="topbar-actions">
+          <button class="quiet-button" id="clear-selection" type="button">Clear source</button>
+          <a class="quiet-button" href="/api/health" target="_blank" rel="noopener">Index health <span aria-hidden="true">↗</span></a>
+        </div>
+      </header>
+
+      <section class="search-region" aria-label="Archive search">
+        <form id="search-form" class="search-form">
+          <label class="search-box" for="query">
+            <span class="search-symbol" aria-hidden="true">⌕</span>
+            <input id="query" name="q" type="search" autocomplete="off" placeholder="Search concepts, equations, names, filenames…" aria-label="Search the course archive">
+            <kbd>/</kbd>
+          </label>
+          <select id="mode" name="mode" class="mode-select" aria-label="Search mode">
+            <option value="hybrid">Hybrid</option>
+            <option value="lexical">Exact / keyword</option>
+            <option value="semantic">Semantic</option>
+          </select>
+          <button class="primary-button" type="submit"><span aria-hidden="true">⌕</span> Search</button>
+        </form>
+        <div class="filter-row" id="filter-row">
+          <label class="filter-control"><span>Course</span><select id="course-filter"><option value="">All courses</option></select></label>
+          <label class="filter-control"><span>Term</span><select id="term-filter"><option value="">All terms</option></select></label>
+          <label class="filter-control"><span>Material</span><select id="content-filter"><option value="">All materials</option></select></label>
+          <label class="filter-control"><span>Lecturer</span><select id="lecturer-filter"><option value="">All lecturers</option></select></label>
+          <label class="filter-control"><span>File type</span><select id="file-filter"><option value="">All file types</option></select></label>
+          <label class="filter-control"><span>Review</span><select id="review-filter"><option value="">All review states</option></select></label>
+          <button class="filter-clear" id="clear-filters" type="button">Reset filters</button>
+        </div>
+      </section>
+
+      <section class="copilot-view is-hidden" id="copilot-view" aria-label="Grounded copilot">
+        <div class="section-heading"><div><div class="eyebrow">RESEARCH CONVERSATION</div><h2>Ask the course archive</h2></div><div class="copilot-heading-actions"><span class="local-badge">ON THIS MAC</span><button id="new-chat" type="button" class="quiet-button" title="Clear questions and replies; keep pins and filters">New chat</button></div></div>
+        <p class="copilot-intro">Explore an idea, compare readings, or ask a follow-up. Open any citation to see its original page and the evidence behind the answer.</p>
+        <div class="copilot-pinboard"><div class="pinboard-heading"><label class="filter-control"><span>Question scope</span><select id="copilot-source-scope"><option value="archive">Archive + current filters</option><option value="pinned">Pinned documents + current filters</option></select></label><button id="clear-pins" type="button" class="quiet-button">Clear pins</button></div><div id="pinned-sources" class="pinned-sources"></div></div>
+        <div class="copilot-conversation" id="copilot-conversation" aria-label="Conversation"></div>
+        <form id="copilot-form" class="copilot-form">
+          <label for="copilot-query" class="sr-only">Ask the course archive</label>
+          <textarea id="copilot-query" rows="3" maxlength="2000" placeholder="Ask about a concept, or follow up on your last answer…" aria-label="Ask the course archive"></textarea>
+          <div class="copilot-form-row"><label class="filter-control"><span>Answer style</span><select id="answer-style"><option value="synthesis">Cited explanation</option><option value="evidence">Evidence excerpts</option></select></label><label class="filter-control"><span>Retrieval mode</span><select id="copilot-mode"><option value="hybrid">Hybrid</option><option value="lexical">Exact / keyword</option><option value="semantic">Semantic</option></select></label><label class="review-toggle"><input id="include-review" type="checkbox"><span>Include review-marked material<br><small>solutions and assessments</small></span></label><button id="ask-submit" class="primary-button copilot-submit" type="submit">Ask locally <span aria-hidden="true">→</span></button></div>
+        </form>
+        <div class="copilot-scope" id="copilot-scope">Scope: entire searchable archive · review-marked material excluded by default</div>
+        <div class="prompt-row" aria-label="Prompt examples"><button class="prompt-chip" type="button" data-prompt="What is option gamma, and how does it relate to delta?">Explain option gamma</button><button class="prompt-chip" type="button" data-prompt="Compare Newton and secant methods for root finding.">Compare numerical methods</button><button class="prompt-chip" type="button" data-prompt="How does fractional Brownian motion relate to rough volatility?">Explore rough volatility</button></div>
+        <div class="copilot-status" id="copilot-status" role="status" aria-live="polite">Checking the local answer model…</div>
+        <p class="copilot-memory-note">This conversation stays in this tab. New chat clears questions and replies. Reloading clears the conversation and pins.</p>
+      </section>
+
+      <section class="coverage-view is-hidden" id="coverage-view" aria-label="Index coverage">
+        <div class="section-heading"><div><div class="eyebrow">INDEX SNAPSHOT</div><h2>Coverage at a glance</h2></div><button class="quiet-button" id="back-to-search" type="button">Back to search</button></div>
+        <div class="coverage-grid" id="coverage-grid"></div>
+        <div class="coverage-note" id="coverage-note"></div>
+      </section>
+
+      <section class="review-view is-hidden" id="review-view" aria-label="Review queue">
+        <div class="section-heading"><div><div class="eyebrow">EVIDENCE QUALITY</div><h2>Review queue</h2></div><button class="quiet-button" id="review-search" type="button">Search reviewed material</button></div>
+        <div class="review-card"><div class="review-icon">!</div><div><h3>Review flags stay visible</h3><p>Assessments and solutions are searchable but labeled for review. Missing or changed files are never silently substituted.</p></div></div>
+        <div class="review-list" id="review-list"></div>
+      </section>
+
+      <section class="workspace" id="search-view">
+        <div class="results-column">
+          <div class="results-heading">
+            <div><div class="eyebrow">RETRIEVAL RESULTS</div><h2 id="results-title">Ready when you are</h2></div>
+            <div class="results-count" id="results-count"></div>
+          </div>
+          <div class="search-note" id="search-note">Search locally across extracted course material. Every result keeps its source locator.</div>
+          <div class="results-list" id="results-list" aria-live="polite">
+            <div class="empty-state"><div class="empty-glyph">⌕</div><h3>Start with a course concept</h3><p>Try “Newton method”, “Girsanov”, or an exact filename.</p></div>
+          </div>
+        </div>
+
+        <section class="viewer-column" aria-label="Source viewer">
+          <div class="viewer-topline">
+            <div><div class="eyebrow">SOURCE VIEWER</div><h2 id="viewer-title">No source selected</h2></div>
+            <div class="viewer-actions" id="viewer-actions" hidden>
+              <button class="icon-button" id="previous-page" type="button" title="Previous page">←</button>
+              <label class="page-input-label"><span class="sr-only">Physical page</span><input id="page-input" type="number" min="1" inputmode="numeric"><span id="page-kind">page</span></label>
+              <button class="icon-button" id="next-page" type="button" title="Next page">→</button>
+              <a class="icon-button link-button" id="open-source" target="_blank" rel="noopener" title="Open source in a new tab" href="#">↗</a>
+            </div>
+          </div>
+          <div class="viewer-stage" id="viewer-stage">
+            <div class="viewer-empty" id="viewer-empty"><div class="viewer-empty-mark">▧</div><h3>Choose a citation</h3><p>The exact page, slide, range, or line will open here.</p></div>
+            <div class="pdf-viewer is-hidden" id="pdf-viewer"><iframe id="pdf-frame" title="Source page preview"></iframe></div>
+            <div class="text-viewer is-hidden" id="text-viewer"><div class="text-viewer-bar"><span id="text-viewer-kind">Focused source text</span><span class="small-muted" id="text-viewer-locator"></span></div><pre id="source-text"></pre></div>
+            <div class="image-viewer is-hidden" id="image-viewer"><img id="source-image" alt="Source image"></div>
+            <div class="fallback-viewer is-hidden" id="fallback-viewer"><div class="fallback-icon">◫</div><h3 id="fallback-title">Inline preview unavailable</h3><p id="fallback-copy"></p><a class="primary-button inline-button" id="fallback-open" target="_blank" rel="noopener" href="#">Open original source <span aria-hidden="true">↗</span></a></div>
+          </div>
+          <div class="viewer-footnote" id="viewer-footnote">The viewer will verify the live source hash before opening it.</div>
+        </section>
+
+        <aside class="detail-column" aria-label="Citation details">
+          <div class="detail-heading"><div class="eyebrow">EVIDENCE DRAWER</div><span class="drawer-state" id="drawer-state">Awaiting source</span></div>
+          <div class="detail-body" id="detail-body"><div class="detail-empty"><div class="detail-empty-mark">◌</div><p>Select a result to inspect its evidence, source path, and version context.</p></div></div>
+        </aside>
+      </section>
+    </main>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+</body>
+</html>
