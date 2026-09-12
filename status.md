@@ -8,6 +8,13 @@ Stages 4–6 are complete for the local release: hybrid retrieval, the source vi
 
 Archive root: `/Users/nigelli/Desktop/Canvas Files`. Original course files remain unchanged. Derived artifacts live under the Git-ignored `.rag/` directory. No source content has been uploaded for indexing or inference.
 
+## Release handoff
+
+- [x] RAG implementation, viewer, supplied Columbia MAFN logo, stage-by-stage runbook, plan, status record, tests, and evaluations committed to `main`.
+- [x] Upstream `main` filename rename merged before push; local `main` and `origin/main` are aligned at the release merge commit.
+- [x] Post-merge inventory, extraction, normalization, and search rebuild completed locally; the active generation contains 20,007 searchable chunks and 130,449 cached semantic windows.
+- [x] Local viewer restarted after the rebuild and browser-checked with the Columbia lockup visible and the Copilot route available.
+
 ## Stage tracker
 
 | Stage | State | Evidence / remaining work |
