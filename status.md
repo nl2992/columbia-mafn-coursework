@@ -119,7 +119,7 @@ Model: cached `sentence-transformers/all-MiniLM-L6-v2`, quantized ARM64 ONNX, sn
 
 ## Verification
 
-- **54 regression tests** cover retrieval, provenance, pinned alias scope, review gating, bounded follow-up context, claim validation/retry, model failure, source changes, GET/POST protections, persistent history, structured calculations, OCR/legacy extraction, source-version checks, bounded archive processing, refresh recovery, backups, and generation switching.
+- **59 regression tests** cover retrieval, provenance, pinned alias scope, review gating, bounded follow-up context, claim validation/retry, model failure, source changes, GET/POST protections, persistent history, structured calculations, OCR/legacy extraction, source-version checks, bounded archive processing, document intake and publishing safeguards, refresh recovery, backups, and generation switching.
 - **15/16 real-archive queries hit the expected source in the top five**: all 14 core cases and the repaired risk-coverage case pass. The one retained semantic challenge remains visible.
 - **73 citations checked; zero provenance, artifact-hash, or filter-context errors.** This validates stored evidence, not visual page interpretation.
 - Latest retrieval evaluation: median warm search 45.9 ms. All core cases pass with no regressions. These are local observations, not service guarantees.
@@ -182,6 +182,7 @@ No further design choice is needed to use Stages 4–7. The current choices are 
 
 ### Document intake and one-click launch — 2026-09-14
 
+- Added an idempotent `SET UP THIS MAC.command` for fresh clones. It installs the complete pinned local runtime and Homebrew document tools, downloads and hash-verifies the pinned MiniLM model, provisions Qwen, builds the first index, and installs the Desktop app. Added a screenshot-backed setup and publishing guide at `docs/SETUP.md`.
 - Added a CU-themed **Add docs** workspace with existing-folder selection, multi-file preview, supported-format and size validation, durable progress cards, and clear GitHub destination details.
 - Added loopback-only upload handling with safe-name/path enforcement, checksum and byte-count verification, collision rejection, atomic writes, one active job, and 20-file / 64-MB-per-file / 128-MB-per-batch bounds.
 - Automated incremental OCR/index refresh, the complete Stage 8 release gate, upload-path-only Git commits through Git LFS, and `origin` push. Failed validation never publishes; failed processing keeps the source files and durable diagnostics locally.
@@ -196,17 +197,17 @@ No further design choice is needed to use Stages 4–7. The current choices are 
 - Added honest visual-page catalog records for two unlabeled equity charts and one handwritten flow sketch whose pages contain no OCR-readable prose.
 - Published generation `2ff51575a5a746adac87499395b20990`: 28,056 chunks, 186,176 vectors, 629 searchable canonical documents, 635/635 represented source paths, zero empty outcomes, and zero extraction errors.
 - Added large-document result diversification so newly indexed textbooks do not crowd lecture evidence, while deferred hits still fill tightly scoped searches. Added bounded support-check retry and per-claim validation fallback for malformed local-model IDs.
-- The strengthened thresholds require zero missing-text sources and zero extraction errors. The final release gate passes 18/18; archive diagnostics hit 605/635 probes (95.3%) with zero locator/hash errors, and all 54 Python tests pass.
+- The strengthened thresholds require zero missing-text sources and zero extraction errors. The final release gate passes 18/18; archive diagnostics hit 605/635 probes (95.3%) with zero locator/hash errors, and all 59 Python tests pass.
 
 ### Stage 8 completion — 2026-09-14
 
 - Added serialized refresh/retry jobs, durable progress, source-change records, extraction reuse, failed-build input recovery and consistent SQLite backups. The completed coverage refresh ends with zero extraction errors and zero empty outcomes.
 - Added persistent named filter views with exact scope restoration and Coverage job history. The running server now adopts newly published generations between requests; the HTTP regression test builds and loads a new generation without a restart.
 - Added `scripts/evaluate_rag_release.py` and versioned thresholds. The accepted generation passes **18/18 release checks**: 14/14 core retrieval, zero regressions, 73 clean returned citations, 605/635 archive diagnostic hits at five, 635/635 valid source-alias citations/hashes, and 8/8 live Copilot checks with 100% bounded answer, abstention, and quotation scores.
-- All **54 regression tests pass**. Median warm search was 45.9 ms; index size was 550,112,928 bytes. Reports: `.rag/release-evaluation.json`, `.rag/stage8-evaluation.json`, `.rag/coverage-evaluation.json`, and `.rag/copilot-evaluation.json`.
+- All **59 regression tests pass**. Median warm search was 45.9 ms; index size was 550,112,928 bytes. Reports: `.rag/release-evaluation.json`, `.rag/stage8-evaluation.json`, `.rag/coverage-evaluation.json`, and `.rag/copilot-evaluation.json`.
 - Refined the CU front end across all areas: stronger navy navigation and editorial hierarchy, Columbia-blue dividers/selection, coherent controls and cards, a two-step Data workflow, and a complete two-row mobile navigation. Browser QA passed at 390 and 1440 pixels; a real citation opened `GR5010_Handout8Greeks2025.pdf` at physical page 9.
 - Personal backup: `.rag/operations/backups/776276aa56824d7aae61f173ca4e7146.sqlite`. Updated local app: `http://127.0.0.1:8767/`.
-- Stage 8 is complete for the defined local release. No automatic filesystem schedule or retention deletion is enabled. The known semantic miss, visual interpretation, and oversized archive members remain explicit post-release backlog. These changes are local and uncommitted.
+- Stage 8 is complete for the defined local release. No automatic filesystem schedule or retention deletion is enabled. The known semantic miss, visual interpretation, and oversized archive members remain explicit post-release backlog. These changes are released on `main`.
 
 ### 2026-09-13
 

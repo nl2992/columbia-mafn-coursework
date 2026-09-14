@@ -161,14 +161,14 @@ Known instruction-override patterns are excluded from model evidence; source ins
 
 ## Runtime and reproducible builds
 
-Tested on this Mac with Python 3.14, NumPy 2.4.4, ONNX Runtime 1.25.1, tokenizers 0.22.2, and SQLite with FTS5. Pinned packages are in `rag/requirements-search.txt`. If dependencies are missing, install them explicitly into the project-local ignored runtime:
+Tested on this Mac with Python 3.14, NumPy 2.4.4, ONNX Runtime 1.25.1, tokenizers 0.22.2, and SQLite with FTS5. The complete pinned runtime is in `rag/requirements-all.txt`; the smaller search-only set remains in `rag/requirements-search.txt`. On a fresh Mac, use the repository-root `SET UP THIS MAC.command`, which installs the runtime and verified local model automatically. The equivalent dependency-only command is:
 
 ```bash
-python3 -m pip install --target .rag/runtime -r rag/requirements-search.txt
+python3 -m pip install --break-system-packages --upgrade --target .rag/runtime -r rag/requirements-all.txt
 python3 scripts/rag_search.py build
 ```
 
-The model is already cached locally on this machine. A different machine must separately provision `tokenizer.json` and `onnx/model_qint8_arm64.onnx` from the same MiniLM snapshot; the search/build commands never download them. Supply their parent directory explicitly when needed:
+The setup command downloads `tokenizer.json` and `onnx/model_qint8_arm64.onnx` from pinned MiniLM snapshot `1110a243fdf4706b3f48f1d95db1a4f5529b4d41`, verifies both SHA-256 hashes, and stores them under `.rag/models/minilm`. Search and build commands never download files at runtime. You can still supply another already-provisioned snapshot explicitly:
 
 ```bash
 python3 scripts/rag_search.py --model-dir /absolute/path/to/model-snapshot build
@@ -191,7 +191,7 @@ python3 scripts/evaluate_rag_coverage.py
 python3 scripts/evaluate_rag_release.py
 ```
 
-The 54-test regression suite covers temporary retrieval corpora, deterministic synthesis fixtures, durable storage, structured calculations, source changes, formulas, explicit dates, parallel PDF OCR, legacy DOC conversion, visual-only catalogs, bounded archive processing, refresh rollback, backups, large-document result diversification, malformed support-check recovery, and live generation switching. Browser checks are `tests/verify_stage7.cjs`, `tests/verify_stage8.cjs`, and `tests/verify_persistence.cjs` (require Playwright and Chrome, plus the running local service). They create and remove only their own temporary saved items. The separate retrieval evaluation uses `rag/evaluation.jsonl` and writes `.rag/search-evaluation.json`; its retained result is 15/16 archive cases at five, including all 14 core cases and the repaired coverage case, with 73 citations free of provenance/hash/filter errors. Default exits nonzero for core/citation failures; `--strict` also fails for the retained semantic challenge.
+The 59-test regression suite covers temporary retrieval corpora, deterministic synthesis fixtures, durable storage, structured calculations, source changes, formulas, explicit dates, parallel PDF OCR, legacy DOC conversion, visual-only catalogs, bounded archive processing, refresh rollback, backups, document intake and publishing safeguards, large-document result diversification, malformed support-check recovery, and live generation switching. Browser checks are `tests/verify_stage7.cjs`, `tests/verify_stage8.cjs`, `tests/verify_persistence.cjs`, and `tests/verify_import.cjs` (require Playwright and Chrome, plus the running local service). They create and remove only their own temporary saved items. The separate retrieval evaluation uses `rag/evaluation.jsonl` and writes `.rag/search-evaluation.json`; its retained result is 15/16 archive cases at five, including all 14 core cases and the repaired coverage case, with 73 citations free of provenance/hash/filter errors. Default exits nonzero for core/citation failures; `--strict` also fails for the retained semantic challenge.
 
 The live Copilot evaluation uses the installed Qwen model and writes `.rag/copilot-evaluation.json`: 8/8 development checks passed (gamma, Newton/secant comparison, follow-up, expected shortfall from the repaired risk lectures, unsupported personal-portfolio abstention, negation, an instruction-override test, and a synthetic conflict). The validator retries one malformed response and falls back to independent per-claim checks when the small local model repeats claim IDs; it never guesses positional verdicts. The initial 7/8 report is preserved in `.rag/copilot-evaluation-initial.json`; its instruction-override failure led to an application filter and regression test. These small smoke sets are not held-out accuracy, exhaustive conflict detection, or general injection-resistance benchmarks.
 
@@ -264,7 +264,7 @@ The accepted index contains 28,056 chunks and 186,176 semantic windows from 629 
 The existing ingestion environment supplies `openpyxl` and Pillow. The additional read-only legacy XLS dependency is pinned locally:
 
 ```bash
-python3 -m pip install --target .rag/runtime -r rag/requirements-data.txt
+python3 -m pip install --break-system-packages --target .rag/runtime -r rag/requirements-data.txt
 python3 scripts/run_rag.py
 ```
 

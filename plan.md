@@ -191,7 +191,7 @@ Implemented and validated against the local archive. The service provides:
 Implementation choices:
 
 - SQLite FTS5/BM25 for words, names, filenames, and search-normalized mathematical symbols. `--phrase` adds a strict literal-substring constraint; equations with broken extraction still require source inspection.
-- Local `all-MiniLM-L6-v2` embeddings using cached quantized ONNX weights and the official tokenizer. No API key, hosted inference, runtime download, or document upload.
+- Local `all-MiniLM-L6-v2` embeddings using pinned, setup-time downloaded quantized ONNX weights and the official tokenizer. No API key, hosted inference, runtime download, or document upload.
 - 384-dimensional vectors in NumPy files; exact cosine search is adequate at this archive size. Each chunk is covered by overlapping 224-token windows with 192-token stride, avoiding silent truncation of long evidence.
 - Reciprocal-rank fusion of lexical and semantic candidates. Scores express ranking, not answer confidence; the default cosine cutoff of 0.25 is an uncalibrated noise floor, not an abstention guarantee.
 - Course, term, content-type, lecturer, folder, file-type, and review filters are applied before candidate limits. Repeated values are ORed; different fields are ANDed on the same source alias. Lecturer metadata currently comes only from named seminar folders.
@@ -207,7 +207,7 @@ scripts/rag_search.py
 scripts/evaluate_rag_search.py
 tests/test_rag_search.py
 rag/evaluation.jsonl
-rag/requirements-search.txt
+rag/requirements-all.txt
 .rag/search/CURRENT.json
 .rag/search/generations/<id>/index.sqlite
 .rag/search/generations/<id>/vectors.npy

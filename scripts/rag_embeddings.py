@@ -34,9 +34,11 @@ def find_model(path=None):
     if path:
         p = Path(path).expanduser().resolve()
     else:
+        project = Path(__file__).resolve().parents[1] / '.rag/models/minilm'
         cache = Path.home() / '.cache/huggingface/hub/models--sentence-transformers--all-MiniLM-L6-v2'
         ref = cache / 'refs/main'
-        p = cache / 'snapshots' / ref.read_text().strip() if ref.exists() else Path('missing-model')
+        p = project if all((project / name).is_file() for name in [MODEL_FILE, 'tokenizer.json']) else (
+            cache / 'snapshots' / ref.read_text().strip() if ref.exists() else Path('missing-model'))
     if not all((p / name).is_file() for name in [MODEL_FILE, 'tokenizer.json']):
         raise RuntimeError('Local MiniLM ONNX files unavailable. Supply --model-dir with '
                            'tokenizer.json and onnx/model_qint8_arm64.onnx. No download is attempted.')

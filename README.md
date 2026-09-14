@@ -23,7 +23,9 @@ Key features:
 
 Personal research lives in Git-ignored `.rag/library.sqlite`. Unlike the index, it cannot be rebuilt from the course files. Back it up; do not delete the whole `.rag/` directory to refresh search.
 
-### One-click launch on macOS
+### One-click setup and launch on macOS
+
+On a new Mac, clone the repository and double-click **`SET UP THIS MAC.command`**. It installs the pinned local runtime and document tools, downloads and verifies both local models, builds the private index, installs the Desktop app, and opens it. See the **[illustrated setup guide](docs/SETUP.md)** for prerequisites, screenshots, GitHub access, document publishing, and troubleshooting.
 
 After `git pull`, open the repository folder and double-click the navy-and-Columbia-blue **`Course Archive.app`** icon. It starts the local viewer and answer model, waits for the archive to be ready, and opens the UI in the default browser. If macOS blocks the unsigned local app the first time, Control-click it, choose **Open**, then confirm **Open**. **`START HERE - Open Course Archive.command`** is the clearly named double-clickable Terminal fallback.
 
@@ -44,16 +46,10 @@ python3 scripts/run_rag.py --port 8765 --open
 One-time setup on a new Mac:
 
 ```bash
-git lfs install
-git lfs pull
-python3 -m pip install --target .rag/runtime -r rag/requirements-data.txt
-brew install ollama tesseract poppler libreoffice
-OLLAMA_HOST=127.0.0.1:11434 OLLAMA_MODELS="$PWD/.rag/models/ollama" OLLAMA_NO_CLOUD=1 ollama serve
-# In a second Terminal window, once:
-OLLAMA_HOST=127.0.0.1:11434 OLLAMA_MODELS="$PWD/.rag/models/ollama" ollama pull qwen3:4b
+./SET\ UP\ THIS\ MAC.command
 ```
 
-If the derived index is absent on a fresh clone, run the Stage 1–4 commands below once before launching. Routine pulls on an already provisioned Mac need only the app click. The `.app` stays inside the repository because its launcher resolves the scripts and local index relative to that folder.
+The setup command handles Git LFS, pinned Python packages in the project-local `.rag/runtime`, local document tools, verified model downloads, the first index build, and Desktop installation. Routine pulls on an already provisioned Mac need only the app click. The `.app` stays inside the repository because its launcher resolves the scripts and local index relative to that folder.
 
 ### Add documents and publish them
 
@@ -88,14 +84,14 @@ Open [the local viewer](http://127.0.0.1:8765/) after Stage 5. To run Stages 5�
 python3 scripts/run_rag.py --open
 ```
 
-For a fresh machine, install the pinned search dependencies from [rag/README.md](rag/README.md), provision the local MiniLM embedding snapshot, and install/pull Ollama’s `qwen3:4b` model for Stage 6. The full API, runtime, rebuild, OCR, test, evaluation, coverage, and locator instructions are in [rag/README.md](rag/README.md); the implementation plan is in [plan.md](plan.md) and the living delivery record is in [status.md](status.md).
+For a fresh machine, run [`SET UP THIS MAC.command`](SET%20UP%20THIS%20MAC.command), which provisions the pinned dependencies and both local models before building the index. The full API, runtime, rebuild, OCR, test, evaluation, coverage, and locator instructions are in [rag/README.md](rag/README.md); the implementation plan is in [plan.md](plan.md) and the living delivery record is in [status.md](status.md).
 
 The accepted local generation represents all 635 course/program-wide source paths: 629 canonical documents, 28,056 searchable chunks, 186,176 semantic windows, zero empty extraction outcomes, and zero extraction errors. The release gate requires those zero-gap counts and passes all 18 checks.
 
 Stage 7 (after the baseline ingestion; Tesseract and the ingestion libraries must be installed):
 
 ```bash
-python3 -m pip install --target .rag/runtime -r rag/requirements-data.txt
+python3 -m pip install --break-system-packages --target .rag/runtime -r rag/requirements-data.txt
 python3 scripts/rag_rich.py
 python3 scripts/rag_pipeline.py normalize
 python3 scripts/rag_search.py build
