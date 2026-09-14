@@ -185,7 +185,7 @@ No further design choice is needed to use Stages 4–7. The current choices are 
 - Added a CU-themed **Add docs** workspace with existing-folder selection, multi-file preview, supported-format and size validation, durable progress cards, and clear GitHub destination details.
 - Added loopback-only upload handling with safe-name/path enforcement, checksum and byte-count verification, collision rejection, atomic writes, one active job, and 20-file / 64-MB-per-file / 128-MB-per-batch bounds.
 - Automated incremental OCR/index refresh, the complete Stage 8 release gate, upload-path-only Git commits through Git LFS, and `origin` push. Failed validation never publishes; failed processing keeps the source files and durable diagnostics locally.
-- Added `Course Archive.app` and `Launch Course Archive.command` for Finder launch, plus the equivalent `python3 scripts/run_rag.py --open` path and complete new-Mac, upload, publishing, and recovery instructions.
+- Added `Course Archive.app` and `START HERE - Open Course Archive.command` for Finder launch, plus the equivalent `python3 scripts/run_rag.py --open` path and complete new-Mac, upload, publishing, and recovery instructions. The app now has a dedicated navy/Columbia-blue archive icon and opens its diagnostic log with a visible alert when startup fails.
 
 ### Extraction coverage completion — 2026-09-14
 

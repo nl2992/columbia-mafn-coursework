@@ -25,7 +25,13 @@ Personal research lives in Git-ignored `.rag/library.sqlite`. Unlike the index, 
 
 ### One-click launch on macOS
 
-After the one-time setup below, double-click **`Course Archive.app`** in the repository folder. It starts the local viewer and answer model, waits for the archive to be ready, and opens it in the default browser. If macOS blocks the unsigned local app the first time, Control-click it, choose **Open**, then confirm **Open**. `Launch Course Archive.command` is a double-clickable Terminal fallback.
+After `git pull`, open the repository folder and double-click the navy-and-Columbia-blue **`Course Archive.app`** icon. It starts the local viewer and answer model, waits for the archive to be ready, and opens the UI in the default browser. If macOS blocks the unsigned local app the first time, Control-click it, choose **Open**, then confirm **Open**. **`START HERE - Open Course Archive.command`** is the clearly named double-clickable Terminal fallback.
+
+```text
+git pull → double-click Course Archive.app → the local UI opens
+```
+
+If startup fails, the app shows an alert and opens `.rag/logs/course-archive-app.log` with the exact error instead of failing invisibly.
 
 The equivalent command is:
 
@@ -45,7 +51,7 @@ OLLAMA_HOST=127.0.0.1:11434 OLLAMA_MODELS="$PWD/.rag/models/ollama" OLLAMA_NO_CL
 OLLAMA_HOST=127.0.0.1:11434 OLLAMA_MODELS="$PWD/.rag/models/ollama" ollama pull qwen3:4b
 ```
 
-If the derived index is absent on a fresh clone, run the Stage 1–4 commands below once before launching. The `.app` stays inside the repository because its launcher resolves the scripts and local index relative to that folder.
+If the derived index is absent on a fresh clone, run the Stage 1–4 commands below once before launching. Routine pulls on an already provisioned Mac need only the app click. The `.app` stays inside the repository because its launcher resolves the scripts and local index relative to that folder.
 
 ### Add documents and publish them
 

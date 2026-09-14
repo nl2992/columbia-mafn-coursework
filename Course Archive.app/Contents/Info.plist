@@ -5,6 +5,7 @@
   <key>CFBundleDisplayName</key><string>Course Archive</string>
   <key>CFBundleExecutable</key><string>launch</string>
   <key>CFBundleIdentifier</key><string>edu.columbia.mafn.coursearchive</string>
+  <key>CFBundleIconFile</key><string>CourseArchive</string>
   <key>CFBundleInfoDictionaryVersion</key><string>6.0</string>
   <key>CFBundleName</key><string>Course Archive</string>
   <key>CFBundlePackageType</key><string>APPL</string>
