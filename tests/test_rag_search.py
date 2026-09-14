@@ -15,7 +15,7 @@ from urllib.parse import urlencode
 from urllib.request import Request, build_opener, ProxyHandler
 
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'scripts'))
-from rag_search import SearchIndex, build, fts_query, source_metadata, handler_for
+from rag_search import SearchIndex, build, fts_query, source_metadata, handler_for, initial_document_cap
 from rag_embeddings import MiniLM, WordPiece, WINDOW, find_model
 from rag_copilot import retrieval_question, ModelUnavailable, verify_claims
 
@@ -128,6 +128,11 @@ class RetrievalTests(unittest.TestCase):
         out=self.index.search('first derivative tangent zero',mode='hybrid',top_k=1,
                               filters={'course':['MATHGR5030'],'content_type':['lecture']})
         self.assertEqual(out['results'][0]['chunk_id'],'chunk:3')
+
+    def test_oversized_documents_receive_a_diversity_cap(self):
+        self.assertEqual(initial_document_cap(201,5),1)
+        self.assertEqual(initial_document_cap(200,5),2)
+        self.assertEqual(initial_document_cap(20,10),4)
 
     def test_lecturer_and_solution_filters(self):
         out=self.index.search('volatility',filters={'lecturer':['Gatheral']})
@@ -251,6 +256,35 @@ class RetrievalTests(unittest.TestCase):
         self.assertEqual(verify_claims([claim],'What does gamma measure?',generator),[])
         self.assertEqual(generator.calls,[])
 
+    def test_support_check_retries_one_malformed_model_response(self):
+        class FlakyVerifier:
+            def __init__(self): self.calls=0
+            def complete(self, system, data, schema):
+                self.calls+=1
+                if self.calls==1: return {'checks':[{'id':'1','support':'supported','answers_question':True}]}
+                return {'checks':[{'id':1,'support':'supported','answers_question':True}]}
+        claim={'number':1,'text':'Gamma measures delta changes.','kind':'answer','supports':[
+            {'quote':'Gamma measures changes in delta.','citation':{'label':'Source A'}}]}
+        generator=FlakyVerifier()
+        self.assertEqual(len(verify_claims([claim],'What does gamma measure?',generator)),1)
+        self.assertEqual(generator.calls,2)
+
+    def test_duplicate_support_ids_fall_back_to_individual_checks(self):
+        class DuplicateVerifier:
+            def __init__(self): self.calls=[]
+            def complete(self, system, data, schema):
+                self.calls.append(data)
+                if len(data['claims'])>1:
+                    return {'checks':[{'id':1,'support':'supported','answers_question':True},
+                                      {'id':1,'support':'supported','answers_question':True}]}
+                return {'checks':[{'id':1,'support':'supported','answers_question':True}]}
+        support={'quote':'Gamma measures changes in delta.','citation':{'label':'Source A'}}
+        claims=[{'number':i,'text':f'Claim {i}','kind':'answer','supports':[support]} for i in (1,2)]
+        generator=DuplicateVerifier()
+        accepted=verify_claims(claims,'What does gamma measure?',generator)
+        self.assertEqual([claim['number'] for claim in accepted],[1,2])
+        self.assertEqual(len(generator.calls),3)
+
     def test_literal_math_punctuation_and_safe_fts(self):
         out=self.index.search('dV = Δ dS.',mode='lexical',phrase=True)
         self.assertEqual(out['results'][0]['chunk_id'],'chunk:0')
@@ -325,6 +359,12 @@ class RetrievalTests(unittest.TestCase):
                                 headers=headers or {'Content-Type':'application/json'})
                 with client.open(request,timeout=10) as response:return json.load(response)
             self.assertEqual(post(post_data)['citations'][0]['source_path'],self.manifest[0]['source_path'])
+            loaded_generation=get('/api/health')['generation']
+            with contextlib.redirect_stdout(io.StringIO()):build(self.root)
+            refreshed_generation=get('/api/health')['generation']
+            self.assertNotEqual(loaded_generation,refreshed_generation)
+            self.assertEqual(get('/api/operations')['loaded_generation'],refreshed_generation)
+            self.assertFalse(get('/api/operations')['restart_required'])
             for payload,headers,status in [
                 (post_data,{'Content-Type':'application/json','Origin':'https://untrusted.example'},403),
                 (post_data,{'Content-Type':'text/plain'},415),

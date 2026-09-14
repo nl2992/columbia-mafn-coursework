@@ -26,6 +26,7 @@ import sys
 import tempfile
 import zipfile
 from collections import Counter, defaultdict
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Iterable, Iterator
@@ -69,6 +70,7 @@ SUPPORTED_ROUTES = {
     ".tsv": "dataset",
     ".ipynb": "notebook",
     ".py": "source_code",
+    ".c": "source_code",
     ".m": "source_code",
     ".tex": "source_code",
     ".txt": "text",
@@ -332,7 +334,9 @@ def ocr_pdf_page(path: Path, page_number: int, cache_dir: Path) -> str:
         )
         if rendered.returncode != 0:
             return ""
-    result = command_output(["tesseract", str(image_path), "stdout", "-l", "eng", "--psm", "6"], timeout=180)
+    # Automatic page segmentation handles both slide layouts and book pages
+    # more reliably than treating the whole page as one uniform text block.
+    result = command_output(["tesseract", str(image_path), "stdout", "-l", "eng", "--psm", "3"], timeout=180)
     return result.stdout.strip() if result.returncode == 0 else ""
 
 
@@ -355,14 +359,38 @@ def extract_pdf(path: Path, record: dict[str, Any], enable_ocr: bool) -> Iterato
         pages.pop()
     count = page_count or len(pages)
     cache_dir = RAG_DIR / "ocr-cache" / record["content_hash"]
+    ocr_pages: dict[int, str] = {}
+    candidates = [
+        page_number
+        for page_number in range(1, count + 1)
+        if enable_ocr
+        and len(re.sub(r"\s+", "", pages[page_number - 1] if page_number <= len(pages) else "")) < 24
+    ]
+    if candidates:
+        workers = min(max(1, int(os.environ.get("RAG_OCR_WORKERS", "6"))), len(candidates))
+        with ThreadPoolExecutor(max_workers=workers) as executor:
+            pending = {executor.submit(ocr_pdf_page, path, page_number, cache_dir): page_number for page_number in candidates}
+            for future in as_completed(pending):
+                page_number = pending[future]
+                try:
+                    ocr_pages[page_number] = future.result()
+                except Exception:
+                    ocr_pages[page_number] = ""
     for page_number in range(1, count + 1):
         page_text = pages[page_number - 1] if page_number <= len(pages) else ""
         method = "pdftotext"
-        if enable_ocr and len(re.sub(r"\s+", "", page_text)) < 24:
-            ocr_text = ocr_pdf_page(path, page_number, cache_dir)
+        if page_number in ocr_pages:
+            ocr_text = ocr_pages[page_number]
             if ocr_text:
                 page_text = ocr_text
                 method = "tesseract"
+        if not page_text.strip():
+            page_text = (
+                f"Visual-only PDF page: {path.name}\n"
+                f"Physical page: {page_number} of {count}\n"
+                "No OCR-readable text was detected. Inspect the source page for the chart, diagram, or other visual evidence."
+            )
+            method = "pdf-visual-catalog"
         yield base_record(
             record,
             record_type="text",
@@ -481,13 +509,39 @@ def converted_office_path(path: Path, target_suffix: str, temp_dir: Path) -> Pat
     if not soffice:
         return None
     result = command_output(
-        [soffice, "--headless", "--convert-to", target_suffix.lstrip("."), "--outdir", str(temp_dir), str(path)],
+        [
+            soffice,
+            f"-env:UserInstallation={(temp_dir / 'profile').resolve().as_uri()}",
+            "--headless",
+            "--convert-to",
+            target_suffix.lstrip("."),
+            "--outdir",
+            str(temp_dir),
+            str(path),
+        ],
         timeout=600,
     )
     if result.returncode != 0:
         return None
     candidate = temp_dir / f"{path.stem}.{target_suffix.lstrip('.') }"
     return candidate if candidate.exists() else None
+
+
+def extract_legacy_document(path: Path, record: dict[str, Any]) -> Iterator[dict[str, Any]]:
+    with tempfile.TemporaryDirectory(prefix="rag-doc-") as temp_name:
+        converted = converted_office_path(path, ".docx", Path(temp_name))
+        if converted is None:
+            yield base_record(
+                record,
+                record_type="error",
+                locator_type="document",
+                locator_value="",
+                text="",
+                extraction_method="libreoffice",
+                error="Could not convert legacy .doc with LibreOffice",
+            )
+            return
+        yield from extract_docx(converted, record)
 
 
 def extract_spreadsheet(path: Path, record: dict[str, Any]) -> Iterator[dict[str, Any]]:
@@ -749,6 +803,8 @@ def extract_records(path: Path, record: dict[str, Any], enable_ocr: bool) -> Ite
         yield from extract_pptx(path, record)
     elif route == "docx":
         yield from extract_docx(path, record)
+    elif route == "legacy_document":
+        yield from extract_legacy_document(path, record)
     elif route in {"spreadsheet", "legacy_spreadsheet"}:
         yield from extract_spreadsheet(path, record)
     elif route == "dataset":
@@ -915,6 +971,10 @@ def normalize(args: argparse.Namespace) -> None:
                         "text": text,
                         "extraction_method": source_record.get("extraction_method"),
                     }
+                    for field in ('archive_members', 'member_hash', 'member_locator', 'ocr_words',
+                                  'ocr_confidence', 'width', 'height', 'frame_count', 'extraction_warning'):
+                        if field in source_record:
+                            chunk[field] = source_record[field]
                     chunk_count += 1
                     documents[str(chunk.get("document_id"))] += 1
                     locators[str(chunk.get("locator_type"))] += 1

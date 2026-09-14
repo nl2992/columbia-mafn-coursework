@@ -7,6 +7,7 @@ import shutil
 import subprocess
 import sys
 import time
+import webbrowser
 from urllib.request import ProxyHandler, build_opener
 
 ROOT=Path(__file__).resolve().parents[1]
@@ -23,11 +24,14 @@ def available(url):
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--port',type=int,default=8765)
+    parser.add_argument('--open',action='store_true',help='Open the archive in the default browser after startup')
     args=parser.parse_args()
     if not 1024<=args.port<=65535:
         raise SystemExit('Choose a port between 1024 and 65535.')
-    if available(f'http://127.0.0.1:{args.port}/api/health'):
-        print(f'Archive service is already running: http://127.0.0.1:{args.port}/?view=copilot')
+    url=f'http://127.0.0.1:{args.port}/'
+    if available(url+'api/health'):
+        print(f'Archive service is already running: {url}')
+        if args.open:webbrowser.open(url)
         return
     processes=[];log=None
     try:
@@ -52,7 +56,13 @@ def main():
             raise SystemExit('Model not installed. With Ollama running, use: ollama pull qwen3:4b')
         server=subprocess.Popen([sys.executable,str(ROOT/'scripts/rag_search.py'),'serve','--port',str(args.port)],cwd=ROOT)
         processes.append(server)
-        print(f'Open http://127.0.0.1:{args.port}/?view=copilot — Ctrl-C stops this launcher’s services.',flush=True)
+        for _ in range(80):
+            if available(url+'api/health'):break
+            if server.poll() is not None:raise SystemExit('Archive service startup failed')
+            time.sleep(.25)
+        else:raise SystemExit('Archive service startup timed out')
+        print(f'Open {url} — Ctrl-C stops this launcher’s services.',flush=True)
+        if args.open:webbrowser.open(url)
         server.wait()
     except KeyboardInterrupt:
         pass

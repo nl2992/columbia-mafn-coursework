@@ -18,7 +18,7 @@ The original archive remains authoritative and unchanged. The RAG index is a der
 
 The Product Library at `/Users/nigelli/Desktop/Desk Work/Product Library/index.html` is being used as a reference for interaction patterns only. The useful patterns to carry into this product are:
 
-- Persistent left-side navigation for major work areas
+- Persistent navigation for major work areas (the current reader layout uses a horizontal masthead)
 - Global search plus structured filters
 - Saved views for repeatable research slices
 - A detail drawer that combines metadata, evidence, and the source viewer
@@ -44,7 +44,7 @@ Use an initial Columbia-oriented token set, subject to a final brand review befo
   --muted: #5F6C83;
   --line: #D9E2EF;
   --surface: #FFFFFF;
-  --canvas: #F5F8FC;
+  --canvas: #F5F7FA;
   --nav: #071747;
   --success: #087443;
   --warning: #9A6700;
@@ -64,7 +64,9 @@ Theme rules:
 
 The supplied lockup is the visual source of truth for the final theme: deep navy anchors navigation and editorial headings, white supports the logo and reading surfaces, and Columbia light blue is reserved for active controls, selection, evidence highlights, and citation chips. The asset is served locally with the viewer and is not fetched from the network.
 
-The viewer should use the same system: a dark-blue drawer header, light-blue citation chips, a white document page, and a cool gray-blue viewer stage. Citation chips must remain visually distinct from warning and error states.
+The viewer uses a white masthead with the supplied full logo, navy headings and controls, light-blue citation chips, a white document page, and a cool gray-blue viewer stage. Citation chips remain visually distinct from warning and error states.
+
+Reader layout refinement — 2026-09-12: use the full content width with a compact source list and a wider reader. Keep page controls on their own wrapping row so long filenames cannot push them outside the panel. Put evidence and provenance in an adjacent keyboard-accessible tab; provide an expanded reader mode. Filters collapse with the active scope still visible. Show original pages without overlays initially, with an optional Text highlights control for Poppler text coordinates across the page. Preserve the full uncropped logo at narrow widths and stack the source list above the reader on mobile.
 
 ## Core user journeys
 
@@ -195,7 +197,7 @@ Implementation choices:
 - Course, term, content-type, lecturer, folder, file-type, and review filters are applied before candidate limits. Repeated values are ORed; different fields are ANDed on the same source alias. Lecturer metadata currently comes only from named seminar folders.
 - Byte-identical files share chunks while retaining per-path course metadata. Explicit `[Ver N]` siblings are linked but not collapsed or presumed to be the newest authoritative version.
 - Index only the course and program-wide roots; exclude application plans, status, scripts, and other internal files from retrieval. Assessment and solution files remain searchable but labeled for review; this is metadata, not an access-control system.
-- Atomic generation publication, input/source hash checks, and a content-addressed embedding cache. Rebuild after ingestion changes; restart a running API to load the new generation. No automatic watcher yet.
+- Atomic generation publication, input/source hash checks, and a content-addressed embedding cache. Rebuild after ingestion changes; a running local API adopts the published generation between requests. No automatic filesystem watcher is enabled.
 
 Deliverables:
 
@@ -231,7 +233,7 @@ Example response shape:
 
 Exit criteria: representative questions return relevant passages with correct locators before any answer generation is added.
 
-Validation: 12 integration tests pass. The curated 16-query development set has 14 top-five hits and zero provenance/hash/filter errors across 68 returned citations. Two retained failures are a broad measure-change paraphrase and missing risk-course lecture text. This is an initial smoke set, not a held-out relevance benchmark. The current index contains 20,007 chunks from 507 documents; 123 source paths have no chunks (103 PDF, 16 XLS, two DOC, two C). Image/archive hits are catalogs, not visual understanding or nested-file extraction. See `status.md` for the living results and `rag/README.md` for commands.
+Validation: the curated 16-query development set now has 15 top-five hits, including all 14 core cases and the repaired risk-coverage case, with zero provenance/hash/filter errors across 73 returned citations. The retained miss is a broad measure-change paraphrase. This is a smoke set, not a held-out relevance benchmark. The current index contains 28,056 chunks from 629 canonical documents and represents all 635 source aliases. OCR-derived text remains subject to recognition error, and visual catalog records require source inspection. See `status.md` for the living results and `rag/README.md` for commands.
 
 ### Stage 5 — Source viewer and citation-first interface — COMPLETE
 
@@ -249,7 +251,8 @@ Completion record — 2026-09-12:
 - [x] On-demand PowerPoint preview with exact slide navigation and verified original-deck link
 - [x] Focused evidence panes for spreadsheet ranges, datasets, notebooks, DOCX blocks, and code/text ranges
 - [x] Stable deep links, safe localhost source delivery, fallbacks, and browser acceptance checks
-- [x] Supplied Columbia University Mathematics of Finance MA Program logo integrated into the sidebar, with its navy/white/light-blue palette applied throughout
+- [x] Supplied Columbia University Mathematics of Finance MA Program logo integrated into a white masthead, with its navy/white/light-blue palette applied throughout
+- [x] Wider reader, compact source list, readable titles, collapsible filters, source/evidence tabs, expanded reader mode, and optional text highlights; verified at 390, 768, 1092, and 1440 pixels
 - [ ] Broader coordinate mapping for non-PDF formats remains optional follow-up work
 
 Viewer requirements:
@@ -297,7 +300,7 @@ Completion record — 2026-09-12:
 - [x] Abstention when retrieval is empty or no generated claims pass validation; model unavailability is shown separately
 - [x] Citation chips that return to the Stage 5 evidence drawer and exact source locator
 - [x] Regression coverage for grounding, review exclusion/opt-in, abstention, HTTP delivery, and viewer wiring
-- [x] Follow-up questions using bounded earlier-question context; New chat clears conversation state
+- [x] Follow-up questions using bounded earlier-question context; New chat starts a fresh conversation while retaining saved history
 - [x] Pin up to 12 documents from results, retrieved evidence, or the source drawer; intersect pins with filters before ranking
 - [x] Exact quotation checks followed by a separate local model support/relevance check; unsupported or uncertain claims are omitted
 - [x] Common instruction-override patterns excluded from answer evidence; retrieved text is treated as data
@@ -311,7 +314,7 @@ Implementation choices:
 - The default answer style uses provider `local-ollama`, model `qwen3:4b` (Q4_K_M, ~2.5 GB). Evidence excerpts remain selectable and work without the answer model.
 - Synthesis receives at most eight retrieved excerpts of up to 2,300 characters, their citation metadata, and the question. It has no tools or filesystem access.
 - Each generated claim supplies a known evidence ID and exact supporting quotation. Only claims that pass quotation matching and a separate model support/relevance check are displayed. Support is categorical, not a calibrated confidence score; the model can still make mistakes.
-- Conversation state remains in the browser tab (up to 20 visible turns); at most six prior questions can contribute to a follow-up. Prior answers and evidence are never trusted as new source material. A changed scope or review policy stops reuse of earlier context. Reloading clears chat and pins.
+- Conversations, drafts, pins, and settings persist in `.rag/library.sqlite`, separate from rebuildable retrieval generations. Questions save before inference; replies save server-side even if the browser disconnects. Up to 1,000 turns / 8 MB per conversation, with at most six prior questions contributing to a follow-up. Prior answers are never trusted as source evidence. A changed scope or review policy stops reuse of earlier context. Saved supports passages, answers, calculations, and JSON export. Conflicting tab edits preserve a separate copy rather than overwrite newer work.
 - Conflict handling presents supported disagreements rather than resolving authority automatically. Publication dates are not inferred from course terms. Missing or garbled extraction can still limit comparisons.
 - The default safety posture excludes solution and assessment material marked `review_required`. Opt-in is visible and produces a warning; the metadata label is not an access-control boundary.
 - Citation records preserve the selected source alias, locator, artifact version, and live source verification already implemented in Stage 5.
@@ -321,21 +324,32 @@ Deliverables: `scripts/rag_copilot.py`, `scripts/run_rag.py`, `scripts/evaluate_
 
 Verification: 22 integration tests and 8/8 live-model development checks, plus browser checks for follow-ups, pinning, New chat, and citation navigation. The initial failed instruction-override case is retained in the evaluation history; see `status.md` for results and limits.
 
-Exit criteria: a user can ask and follow up across the archive or pinned documents, inspect each answer's supporting quotations, click citations into the original source viewer, and see explicit abstention or conflict states. These behaviors are implemented and covered by regression and browser checks. Small-model reliability, broader injection resistance, and held-out evaluation remain continuing quality work in Stage 8, not guarantees of this release.
+Exit criteria: a user can ask and follow up across the archive or pinned documents, inspect each answer's supporting quotations, click citations into the original source viewer, and see explicit abstention or conflict states. These behaviors are implemented and covered by regression, live-model, and browser checks. Small-model reliability and broader injection resistance remain continuing quality work, not guarantees of this release.
 
 ### Stage 7 — Structured, visual, and computational retrieval
 
-Extend beyond text:
+Completed for the bounded local scope — 2026-09-13. Extend beyond text:
 
-- Spreadsheet-aware queries over sheets, tables, formulas, and ranges
-- Dataset catalog with schema, date coverage, units, and available structured operations
-- Optional Python execution for approved numerical questions, with generated outputs linked to the input dataset and code
-- OCR/caption search for images and diagrams
-- Archive contents and nested files
+- [x] Data workspace for CSV/TSV/XLSX/XLSM/XLS, sheet selection, explicit cell ranges, header selection, source-row previews, formula text and cached values (XLS provides stored values only).
+- [x] On-demand schema, header-declared units or explicit unknowns, date coverage, and numeric/date row filters. ISO/MDY/DMY interpretation is explicit; ambiguous slash dates are not guessed.
+- [x] Approved Python operations: row count, sum, mean, min, max, and sample standard deviation. Run locally is the execution confirmation. No arbitrary/model-authored code, formula execution, macros, or remote calls.
+- [x] Results retain the exact source hash, sheet/range, query recipe, and implementation hash. Save/reopen historical results, export JSON, and replay through `scripts/rag_data.py --replay` with source/engine version checks.
+- [x] First-frame Tesseract OCR for images/diagrams, preserving recognized words, pixel boxes and engine confidence in provenance. Image citations open the original. This searches visible labels, not the meaning of a chart or equation; semantic visual captions and animated-frame coverage are not claimed.
+- [x] Supported ZIP contents and nested ZIPs are searchable with parent hash, member chain, member hash, and original member locator. Verified member delivery opens the member rather than the ZIP. No member is executed; links, unsafe paths, ambiguous duplicate names, encryption, expansion bombs, and excessive nesting are rejected.
+- [x] Copilot hands recognizable structured/numerical requests to a Data workspace constrained by current filters/pins/review policy; it asks for exact file/column/range choices and does not invent numerical answers from catalog samples. Conceptual questions retain text retrieval. This is a conservative keyword router, not general natural-language-to-code.
+- [x] Review shows low-confidence OCR and skipped/failed archive entries. The ingestion report records bounded coverage rather than treating a catalog as full extraction.
 
-Exit criteria: the assistant can identify when a question requires text retrieval, structured lookup, or computation and routes it appropriately.
+Bounds: 128 MiB input / 2 million rows / 256 selected columns / 60-second structured scan; XLSX worksheets over 2 million cells and excessive XML expansion are rejected. A preview shows the first 30 matching rows, while aggregates read the complete selected range. ZIP limits: 25 MiB per member, 100 MiB expanded total, 1,000 visited members, two nested ZIP levels, 5,000 emitted records, and 300 pages per member PDF. Archive containers require review opt-in for Copilot because they may contain mixed assessment material. Oversized market CSV members remain catalogs; direct CSV structured queries work independently.
+
+Exit criteria: implemented for the operations/formats above, with regression tests, browser checks, saved-result round trips, an independent full-CSV numerical check, and the published local index. Future richer computation and semantic visual interpretation remain post-release enhancements.
 
 ### Stage 8 — Evaluation, refresh, and operations
+
+Completed for the local release — 2026-09-14. `scripts/rag_operations.py` provides hash scans, serialized refresh jobs, cached extraction, error/empty retries, per-document progress, change records, SQLite backups, and failed-build input recovery. Saved filter views live in the personal library; Coverage displays job history. A running service safely adopts an atomically published generation between requests. The zero-gap refresh finished with 629/629 canonical documents searchable, zero empty outcomes, and zero extraction errors. The expanded 54-test suite covers OCR/legacy extraction, changes, deletion, reuse, failure/retry, locking, backups, generation switching, result diversification, and malformed model-validation recovery.
+
+`scripts/evaluate_rag_release.py` is the single release gate. Thresholds are versioned in `rag/release-thresholds.json`; the combined report is `.rag/release-evaluation.json`. Generation `2ff51575a5a746adac87499395b20990` passes all 18 checks: 14/14 curated core retrieval cases, no retrieval regression, zero errors across 73 returned citations, 605/635 archive-wide source-derived probes at five (95.3%), zero locator/hash errors across all 635 aliases, zero missing sources, zero extraction errors, 8/8 live Copilot cases, and 100% on the bounded answer, abstention, and quotation rubrics. Median warm search was 45.9 ms and the generation occupied 550,112,928 bytes.
+
+The evaluation suite spans every indexed course, content type, and format through deterministic source-derived probes. Those probes audit coverage and stability rather than estimating natural-query relevance. The curated and live-model cases are development tests, not statistically representative held-out accuracy. Release thresholds now require zero missing source paths and zero extraction-error documents.
 
 Create a regression suite across all courses and content types. Track retrieval recall, citation precision, answer correctness, abstention quality, latency, extraction failures, and index size.
 
@@ -349,7 +363,9 @@ Add:
 - Audit log for index rebuilds and source changes
 - Backup/rebuild instructions
 
-Exit criteria: a changed source file can be re-indexed without duplicating unchanged content, and evaluation results remain stable across releases.
+Exit criteria: met. Added, changed, and deleted sources are detected; unchanged extraction and embeddings are reused; failed publication restores prior inputs; a successful build is adopted without restarting the service; and the release gate rejects metric regressions or threshold breaches.
+
+Post-release intake extension — 2026-09-14: the CU-themed **Add docs** workspace now accepts bounded batches into existing archive folders, verifies file bytes and paths, starts the refresh and release gate asynchronously, and commits only the accepted sources before pushing the active branch to `origin`. A repository-relative macOS app bundle and command fallback provide one-click startup. Intake failures retain the local files and durable job diagnostics; existing files are never overwritten.
 
 ## Proposed application areas
 
@@ -378,6 +394,6 @@ The first release is complete when it can:
 
 ## Immediate next step
 
-Stage 6 is complete with local model synthesis, conversations, pinned documents, support checks, and source citations. Continue to Stage 7 for spreadsheet/data questions and visual extraction. Keep numerical calculations tied to a structured query or computation path; the text copilot must not imply access to unindexed dataset rows.
+Stages 0–8 are complete for the defined local release, including complete top-level source representation, personal research, rich data, saved filters, refresh/retry jobs, backups, automatic generation adoption, and a reproducible release gate. Preserve `.rag/library.sqlite` when rebuilding: it is personal research data, not a disposable index. Post-release quality work is oversized archive members, richer semantic visual interpretation, automatic retention cleanup, and the retained semantic paraphrase challenge.
 
-Track a parallel ingestion-quality follow-up: prioritize the 103 PDFs without chunks, especially MATHGR5320 (only two of 39 documents currently searchable), repair legacy XLS/DOC and C-file handling, then rebuild the index and rerun the retained coverage test. Stronger semantic retrieval/reranking remains an evaluation-led follow-up; do not hide the existing paraphrase failure.
+The archive will continue to grow as more documentation is uploaded. Every future batch can enter through **Add docs**, which applies the Stage 8 incremental refresh workflow, retains source hashes and exact locators, surfaces unsupported or low-confidence items for review, and requires the zero-gap release thresholds before committing and pushing the documents.

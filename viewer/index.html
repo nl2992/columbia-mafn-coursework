@@ -6,39 +6,41 @@
   <meta name="description" content="Local Columbia Mathematics of Finance course archive search and source viewer">
   <title>Columbia MAFN Source Library</title>
   <link rel="stylesheet" href="/viewer/styles.css">
+  <script src="/viewer/library.js" defer></script>
+  <script src="/viewer/data.js" defer></script>
+  <script src="/viewer/import.js" defer></script>
   <script src="/viewer/app.js" defer></script>
 </head>
 <body>
   <div class="app-shell">
-    <aside class="sidebar" aria-label="Primary navigation">
+    <header class="masthead" aria-label="Columbia Mathematics of Finance library">
       <div class="brand-lockup brand-logo-lockup">
         <img class="brand-logo" src="/viewer/maf-logo.png" alt="Columbia University Mathematics of Finance MA Program">
       </div>
-      <div class="sidebar-rule"></div>
-      <nav class="nav-stack">
-        <button class="nav-item is-active" type="button" data-view="search"><span class="nav-icon">⌕</span>Search archive</button>
-        <button class="nav-item" type="button" data-view="copilot"><span class="nav-icon">✦</span>Copilot</button>
-        <button class="nav-item" type="button" data-view="coverage"><span class="nav-icon">▥</span>Coverage</button>
-        <button class="nav-item" type="button" data-view="review"><span class="nav-icon">◌</span>Review queue</button>
+      <nav class="nav-stack" aria-label="Primary navigation">
+        <button class="nav-item is-active" type="button" data-view="search" aria-current="page">Library</button>
+        <button class="nav-item" type="button" data-view="copilot">Copilot</button>
+        <button class="nav-item" type="button" data-view="data">Data</button>
+        <button class="nav-item" type="button" data-view="saved">Saved</button>
+        <button class="nav-item" type="button" data-view="coverage">Coverage</button>
+        <button class="nav-item" type="button" data-view="review">Review</button>
+        <button class="nav-item" type="button" data-view="import">Add docs</button>
       </nav>
-      <div class="sidebar-spacer"></div>
       <div class="index-card">
-        <div class="eyebrow">LOCAL INDEX</div>
         <div class="index-status"><span class="status-dot" id="status-dot"></span><span id="index-status">Checking index…</span></div>
         <div class="index-detail" id="index-detail">Private on this computer</div>
       </div>
-      <div class="sidebar-footer">Stage 6 · grounded copilot</div>
-    </aside>
+    </header>
 
     <main class="main-content">
       <header class="topbar">
         <div>
-          <div class="eyebrow">COLUMBIA MAFN · COURSE ARCHIVE</div>
+          <div class="eyebrow">THE COURSE LIBRARY</div>
           <h1 id="page-title">Search the archive</h1>
+          <p class="page-description" id="page-description">Find an idea. Go straight to the source.</p>
         </div>
         <div class="topbar-actions">
           <button class="quiet-button" id="clear-selection" type="button">Clear source</button>
-          <a class="quiet-button" href="/api/health" target="_blank" rel="noopener">Index health <span aria-hidden="true">↗</span></a>
         </div>
       </header>
 
@@ -56,7 +58,13 @@
           </select>
           <button class="primary-button" type="submit"><span aria-hidden="true">⌕</span> Search</button>
         </form>
-        <div class="filter-row" id="filter-row">
+        <details class="filter-panel" id="filter-panel">
+          <summary>Filters <span id="filter-summary">All course materials</span></summary>
+          <div class="filter-save-row">
+            <label class="filter-control"><span>Save current search and filters</span><input id="view-title" maxlength="200" placeholder="Name this view"></label>
+            <button class="quiet-button" id="save-view" type="button">Save view</button>
+          </div>
+          <div class="filter-row" id="filter-row">
           <label class="filter-control"><span>Course</span><select id="course-filter"><option value="">All courses</option></select></label>
           <label class="filter-control"><span>Term</span><select id="term-filter"><option value="">All terms</option></select></label>
           <label class="filter-control"><span>Material</span><select id="content-filter"><option value="">All materials</option></select></label>
@@ -64,11 +72,19 @@
           <label class="filter-control"><span>File type</span><select id="file-filter"><option value="">All file types</option></select></label>
           <label class="filter-control"><span>Review</span><select id="review-filter"><option value="">All review states</option></select></label>
           <button class="filter-clear" id="clear-filters" type="button">Reset filters</button>
-        </div>
+          </div>
+        </details>
       </section>
 
       <section class="copilot-view is-hidden" id="copilot-view" aria-label="Grounded copilot">
-        <div class="section-heading"><div><div class="eyebrow">RESEARCH CONVERSATION</div><h2>Ask the course archive</h2></div><div class="copilot-heading-actions"><span class="local-badge">ON THIS MAC</span><button id="new-chat" type="button" class="quiet-button" title="Clear questions and replies; keep pins and filters">New chat</button></div></div>
+        <div class="section-heading"><div><div class="eyebrow">RESEARCH CONVERSATION</div><h2>Ask the course archive</h2></div><div class="copilot-heading-actions"><span class="local-badge">ON THIS MAC</span><button id="new-chat" type="button" class="quiet-button" title="Start a new conversation; keep the previous one in Saved">New chat</button></div></div>
+        <div class="chat-history-bar">
+          <label class="filter-control"><span>Conversation</span><select id="chat-history"><option value="">New conversation</option></select></label>
+          <label class="filter-control"><span>Title</span><input id="chat-title" maxlength="200" placeholder="Named from your first question"></label>
+          <button id="save-chat" type="button" class="quiet-button">Save now</button>
+          <button id="export-chat" type="button" class="quiet-button">Export chat</button>
+        </div>
+        <div id="save-status" class="save-status" role="status" aria-live="polite">Connecting to saved conversations…</div>
         <p class="copilot-intro">Explore an idea, compare readings, or ask a follow-up. Open any citation to see its original page and the evidence behind the answer.</p>
         <div class="copilot-pinboard"><div class="pinboard-heading"><label class="filter-control"><span>Question scope</span><select id="copilot-source-scope"><option value="archive">Archive + current filters</option><option value="pinned">Pinned documents + current filters</option></select></label><button id="clear-pins" type="button" class="quiet-button">Clear pins</button></div><div id="pinned-sources" class="pinned-sources"></div></div>
         <div class="copilot-conversation" id="copilot-conversation" aria-label="Conversation"></div>
@@ -80,41 +96,110 @@
         <div class="copilot-scope" id="copilot-scope">Scope: entire searchable archive · review-marked material excluded by default</div>
         <div class="prompt-row" aria-label="Prompt examples"><button class="prompt-chip" type="button" data-prompt="What is option gamma, and how does it relate to delta?">Explain option gamma</button><button class="prompt-chip" type="button" data-prompt="Compare Newton and secant methods for root finding.">Compare numerical methods</button><button class="prompt-chip" type="button" data-prompt="How does fractional Brownian motion relate to rough volatility?">Explore rough volatility</button></div>
         <div class="copilot-status" id="copilot-status" role="status" aria-live="polite">Checking the local answer model…</div>
-        <p class="copilot-memory-note">This conversation stays in this tab. New chat clears questions and replies. Reloading clears the conversation and pins.</p>
+        <p class="copilot-memory-note">Questions, replies, drafts, and pins save on this Mac. New chat keeps your previous conversation in Saved. Reopened answers are historical snapshots; opening a citation checks the current source.</p>
+      </section>
+
+      <section class="data-view is-hidden" id="data-view" aria-label="Structured data workspace">
+        <div class="section-heading"><div><div class="eyebrow">FROM SOURCE TO NUMBER</div><h2>Inspect. Calculate. Trace it back.</h2></div><button type="button" class="quiet-button" id="data-all">Full data catalog</button></div>
+        <p class="page-description">Read original cells and dataset rows. Choose an operation explicitly; every result carries its source range and a replayable recipe.</p>
+        <p id="data-scope" class="small-muted"></p>
+        <form id="data-form" class="data-query-card">
+          <div class="data-card-heading"><span class="data-step">1</span><div><div class="eyebrow">SELECT A SOURCE</div><h3>Choose the cells you want to inspect</h3></div></div>
+          <div class="data-file-row"><label class="filter-control"><span>Workbook or dataset</span><select id="data-path" required><option value="">Choose a file…</option></select></label><label class="filter-control"><span>Sheet</span><select id="data-sheet"><option value="">Choose a file first</option></select></label></div>
+          <div class="data-card-heading data-card-heading-secondary"><span class="data-step">2</span><div><div class="eyebrow">DEFINE THE QUERY</div><h3>Preview or calculate from an explicit range</h3></div></div>
+          <div class="data-controls">
+            <label class="filter-control"><span>Cell range · blank = entire table</span><input id="data-range" value="A1:Z31" placeholder="A1:G500 or blank" maxlength="30"></label>
+            <label class="filter-control"><span>Operation</span><select id="data-operation"><option value="preview">Preview rows &amp; schema</option><option value="count">Count rows</option><option value="sum">Sum</option><option value="mean">Mean</option><option value="min">Minimum</option><option value="max">Maximum</option><option value="stddev">Sample standard deviation</option></select></label>
+            <label class="filter-control"><span>Numeric column letter</span><input id="data-column" placeholder="e.g. G" maxlength="3"></label>
+            <label class="filter-control"><span>Source date format</span><select id="data-date-format"><option value="iso">ISO · YYYY-MM-DD</option><option value="mdy">Month / day / year</option><option value="dmy">Day / month / year</option></select></label>
+          </div>
+          <details class="data-filter"><summary>Optional row filter · inclusive bounds</summary><div class="data-controls"><label class="filter-control"><span>Filter column letter</span><input id="data-filter-column" placeholder="e.g. A" maxlength="3"></label><label class="filter-control"><span>Value type</span><select id="data-filter-type"><option value="number">Number</option><option value="date">Date</option></select></label><label class="filter-control"><span>Minimum · ISO dates accepted</span><input id="data-min" maxlength="40"></label><label class="filter-control"><span>Maximum</span><input id="data-max" maxlength="40"></label></div></details>
+          <div class="data-submit-row"><div class="data-options"><label class="review-toggle"><input type="checkbox" id="data-header" checked><span>First row of range contains headers</span></label><label class="review-toggle"><input type="checkbox" id="data-review"><span>Include review-marked files</span></label></div><button id="data-run" class="primary-button" type="submit" disabled>Run locally <span aria-hidden="true">→</span></button></div>
+        </form>
+        <p id="data-status" class="save-status" role="status" aria-live="polite">Choose Data to load the catalog.</p>
+        <section id="data-result" class="data-query-card is-hidden" aria-label="Structured result">
+          <div class="section-heading"><div id="data-summary"></div><div class="saved-actions"><button type="button" id="data-save" class="quiet-button">Save result</button><button type="button" id="data-export" class="quiet-button">Export result</button><a id="data-original" class="quiet-button link-button" target="_blank" rel="noopener">Open original ↗</a></div></div>
+          <h3>Source cells · first 30 matching rows</h3><div id="data-table" class="data-table-scroll" tabindex="0" role="region" aria-label="Source cell preview"></div>
+          <details open><summary>Schema, units, and date coverage</summary><div id="data-schema" class="data-table-scroll" tabindex="0" role="region" aria-label="Dataset schema"></div></details>
+          <details><summary>Calculation recipe &amp; source fingerprint</summary><pre id="data-recipe"></pre></details>
+          <div id="data-warnings" class="data-warnings"></div>
+        </section>
+      </section>
+
+      <section class="saved-view is-hidden" id="saved-view" aria-label="Saved library">
+        <div class="section-heading"><div><div class="eyebrow">YOUR RESEARCH</div><h2>Keep what matters</h2></div><div class="saved-actions"><button type="button" class="quiet-button" id="refresh-saved">Refresh saved items</button><button type="button" class="quiet-button" id="export-library">Export library</button></div></div>
+        <p class="page-description">Conversations save automatically. Bookmark passages and answers to find them here later.</p>
+        <div id="saved-items"></div>
       </section>
 
       <section class="coverage-view is-hidden" id="coverage-view" aria-label="Index coverage">
         <div class="section-heading"><div><div class="eyebrow">INDEX SNAPSHOT</div><h2>Coverage at a glance</h2></div><button class="quiet-button" id="back-to-search" type="button">Back to search</button></div>
         <div class="coverage-grid" id="coverage-grid"></div>
         <div class="coverage-note" id="coverage-note"></div>
+        <section class="coverage-note" aria-label="Refresh jobs">
+          <h3>Refresh history</h3>
+          <button class="quiet-button" id="refresh-jobs" type="button">Refresh job status</button>
+          <div id="operations-status" aria-live="polite">Loading refresh history…</div>
+        </section>
       </section>
 
       <section class="review-view is-hidden" id="review-view" aria-label="Review queue">
         <div class="section-heading"><div><div class="eyebrow">EVIDENCE QUALITY</div><h2>Review queue</h2></div><button class="quiet-button" id="review-search" type="button">Search reviewed material</button></div>
         <div class="review-card"><div class="review-icon">!</div><div><h3>Review flags stay visible</h3><p>Assessments and solutions are searchable but labeled for review. Missing or changed files are never silently substituted.</p></div></div>
         <div class="review-list" id="review-list"></div>
+        <div id="rich-review" class="review-list" aria-label="Image and archive extraction report"></div>
+      </section>
+
+      <section class="import-view is-hidden" id="import-view" aria-label="Add documents">
+        <div class="section-heading"><div><div class="eyebrow">ARCHIVE INTAKE</div><h2>Add course documents</h2></div><span class="local-badge">LOCAL FIRST</span></div>
+        <div class="import-layout">
+          <form id="import-form" class="import-card">
+            <div class="import-step"><span>1</span><div><div class="eyebrow">DESTINATION</div><h3>Choose an existing archive folder</h3></div></div>
+            <label class="filter-control"><span>Course folder</span><select id="import-folder" required><option value="">Loading folders…</option></select></label>
+            <div class="import-step"><span>2</span><div><div class="eyebrow">DOCUMENTS</div><h3>Select the files to add</h3></div></div>
+            <label class="import-drop" for="import-files"><strong>Choose documents</strong><span>PDFs, Office files, datasets, notes, code, images, notebooks, and ZIP archives</span><input id="import-files" type="file" multiple></label>
+            <ul id="import-file-list" class="import-file-list"><li class="import-empty">No documents selected yet.</li></ul>
+            <p id="import-limits" class="small-muted"></p>
+            <div class="import-publish-note"><strong>Automatic archive update</strong><p id="import-publish-target">Checking the GitHub destination…</p><ol><li>Save and verify each file locally</li><li>Run incremental OCR and indexing</li><li>Pass the complete Stage 8 release gate</li><li>Commit the documents with Git LFS and push to GitHub</li></ol></div>
+            <div class="import-submit-row"><p id="import-validation" role="status" aria-live="polite">Choose a folder and at least one document.</p><button id="import-submit" class="primary-button" type="submit" disabled>Import, verify &amp; publish</button></div>
+          </form>
+          <aside class="import-history">
+            <div class="section-heading"><div><div class="eyebrow">PUBLISH STATUS</div><h3>Recent intake jobs</h3></div><button id="import-refresh" class="quiet-button" type="button">Refresh</button></div>
+            <div id="import-jobs" aria-live="polite"><div class="import-empty-panel">Loading intake history…</div></div>
+            <p class="small-muted">If verification or GitHub publishing fails, the new files stay in their selected local folder and the error appears here.</p>
+          </aside>
+        </div>
       </section>
 
       <section class="workspace" id="search-view">
         <div class="results-column">
           <div class="results-heading">
-            <div><div class="eyebrow">RETRIEVAL RESULTS</div><h2 id="results-title">Ready when you are</h2></div>
+            <div><h2 id="results-title">Sources</h2></div>
             <div class="results-count" id="results-count"></div>
           </div>
-          <div class="search-note" id="search-note">Search locally across extracted course material. Every result keeps its source locator.</div>
+          <div class="search-note" id="search-note">Search your courses to find a source.</div>
           <div class="results-list" id="results-list" aria-live="polite">
             <div class="empty-state"><div class="empty-glyph">⌕</div><h3>Start with a course concept</h3><p>Try “Newton method”, “Girsanov”, or an exact filename.</p></div>
           </div>
         </div>
 
-        <section class="viewer-column" aria-label="Source viewer">
+        <div class="reading-column">
+          <div class="reader-toolbar">
+            <div class="reader-tabs" role="tablist" aria-label="Source information">
+              <button type="button" id="source-tab" role="tab" aria-selected="true" aria-controls="source-panel">Source page</button>
+              <button type="button" id="evidence-tab" role="tab" aria-selected="false" aria-controls="evidence-panel" tabindex="-1">Evidence &amp; details</button>
+            </div>
+            <button type="button" class="quiet-button" id="focus-reader" aria-pressed="false">Expand reader</button>
+          </div>
+        <section class="viewer-column" id="source-panel" role="tabpanel" aria-labelledby="source-tab" tabindex="0">
           <div class="viewer-topline">
-            <div><div class="eyebrow">SOURCE VIEWER</div><h2 id="viewer-title">No source selected</h2></div>
+            <div class="viewer-document"><div class="eyebrow">ORIGINAL SOURCE</div><h2 id="viewer-title">No source selected</h2></div>
             <div class="viewer-actions" id="viewer-actions" hidden>
               <button class="icon-button" id="previous-page" type="button" title="Previous page">←</button>
               <label class="page-input-label"><span class="sr-only">Physical page</span><input id="page-input" type="number" min="1" inputmode="numeric"><span id="page-kind">page</span></label>
               <button class="icon-button" id="next-page" type="button" title="Next page">→</button>
-              <a class="icon-button link-button" id="open-source" target="_blank" rel="noopener" title="Open source in a new tab" href="#">↗</a>
+              <button class="quiet-button" id="save-source" type="button">Save passage</button>
+              <a class="quiet-button link-button" id="open-source" target="_blank" rel="noopener" title="Open source in a new tab" href="#">Open original ↗</a>
             </div>
           </div>
           <div class="viewer-stage" id="viewer-stage">
@@ -127,13 +212,18 @@
           <div class="viewer-footnote" id="viewer-footnote">The viewer will verify the live source hash before opening it.</div>
         </section>
 
-        <aside class="detail-column" aria-label="Citation details">
-          <div class="detail-heading"><div class="eyebrow">EVIDENCE DRAWER</div><span class="drawer-state" id="drawer-state">Awaiting source</span></div>
+        <section class="detail-column" id="evidence-panel" role="tabpanel" aria-labelledby="evidence-tab" tabindex="0" hidden>
+          <div class="detail-heading"><div class="eyebrow">SOURCE DETAILS</div><span class="drawer-state" id="drawer-state">Awaiting source</span></div>
           <div class="detail-body" id="detail-body"><div class="detail-empty"><div class="detail-empty-mark">◌</div><p>Select a result to inspect its evidence, source path, and version context.</p></div></div>
-        </aside>
+        </section>
+        </div>
       </section>
     </main>
   </div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <dialog id="delete-saved-dialog" class="library-dialog">
+    <form method="dialog"><h2>Delete this saved item?</h2><p id="delete-saved-title"></p><p class="small-muted">It will be removed from Saved. Original course files are unaffected.</p><div class="saved-actions"><button value="cancel" class="quiet-button">Cancel</button><button value="delete" class="primary-button">Delete item</button></div></form>
+  </dialog>
+  <dialog id="saved-answer-dialog" class="library-dialog"><form method="dialog"><button class="quiet-button">Close</button></form><div id="saved-answer-content"></div></dialog>
 </body>
 </html>

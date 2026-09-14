@@ -53,6 +53,10 @@ def evaluate(index, cases):
             'limits':'Curated development smoke set, not held-out recall/precision or answer-quality evaluation. '
                      'Citation checks validate stored provenance and artifact hashes, not visual page rendering.',
             'results':results}
+    report['mean_reciprocal_rank_at_5'] = sum(1/r['first_relevant_rank'] if r['first_relevant_rank'] else 0 for r in results)/len(results)
+    report['provenance_check_rate'] = 1-report['citation_error_count']/max(1,report['citations_checked'])
+    report['index_bytes'] = sum(p.stat().st_size for p in index.directory.iterdir() if p.is_file())
+    report['source_paths_without_chunks'] = len(index.report['sources_without_chunks'])
     return report
 
 
@@ -62,17 +66,24 @@ def main():
     parser.add_argument('--cases',type=Path,default=ROOT/'rag/evaluation.jsonl')
     parser.add_argument('--output',type=Path)
     parser.add_argument('--strict',action='store_true',help='Fail also on known challenge/coverage misses')
+    parser.add_argument('--baseline',type=Path,help='Fail if a previously passing case regresses')
     args=parser.parse_args()
     index=SearchIndex(args.root)
     try:report=evaluate(index,list(load_jsonl(args.cases)))
     finally:index.close()
+    report['regressions'] = []
+    if args.baseline:
+        previous = json.loads(args.baseline.read_text())
+        current = {r['id']:r for r in report['results']}
+        report['regressions'] = [r['id'] for r in previous['results'] if r['hit_at_5'] and
+            (r['id'] not in current or not current[r['id']]['hit_at_5'] or current[r['id']]['citation_errors'])]
     output=args.output or args.root/'.rag/search-evaluation.json'
     write_json(output,report)
     print(json.dumps({k:v for k,v in report.items() if k!='results'},indent=2))
     print('Full report:',output)
     bad=[r for r in report['results'] if r['citation_errors'] or
          (not r['hit_at_5'] and (args.strict or r['group']=='core'))]
-    raise SystemExit(1 if bad else 0)
+    raise SystemExit(1 if bad or report['regressions'] else 0)
 
 
 if __name__=='__main__':main()

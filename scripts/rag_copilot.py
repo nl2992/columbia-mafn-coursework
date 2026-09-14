@@ -212,15 +212,45 @@ def verify_claims(claims, query, generator):
     data = {'question': query, 'claims': [{'id': c['number'], 'text': c['text'], 'kind': c['kind'],
              'quotations': [{'text': s['quote'], 'source': s['citation']['label']} for s in c['supports']]}
             for c in claims]}
-    result = generator.complete(VERIFY_PROMPT, data, VERIFY_SCHEMA)
-    checks = result.get('checks')
-    if not isinstance(checks, list):
-        raise ModelUnavailable('The answer support check was incomplete')
-    valid = {}
-    for check in checks:
-        if not isinstance(check, dict) or type(check.get('id')) is not int or check['id'] in valid:
-            raise ModelUnavailable('The answer support check was invalid')
-        valid[check['id']] = check
+    valid = None
+    failure = 'The answer support check was incomplete'
+    for attempt in range(2):
+        result = generator.complete(VERIFY_PROMPT, data, VERIFY_SCHEMA)
+        checks = result.get('checks') if isinstance(result, dict) else None
+        if not isinstance(checks, list):
+            failure = 'The answer support check was incomplete'
+            continue
+        candidate = {}
+        malformed = False
+        duplicate = False
+        for check in checks:
+            if not isinstance(check, dict) or type(check.get('id')) is not int:
+                malformed = True
+                break
+            if check['id'] in candidate:
+                malformed = True
+                duplicate = True
+                break
+            candidate[check['id']] = check
+        if not malformed:
+            valid = candidate
+            break
+        if duplicate and len(claims) > 1:
+            # Small local models sometimes repeat id 1 for every row. Do not
+            # guess positional correspondence: validate each claim separately.
+            individually_accepted = []
+            for claim in claims:
+                single = {**claim, 'number': 1}
+                if verify_claims([single], query, generator):
+                    individually_accepted.append({
+                        **claim,
+                        'number': len(individually_accepted) + 1,
+                        'grounding': {'quote_match': True, 'entailment': 'model_supported'},
+                    })
+            return individually_accepted
+        failure = 'The answer support check was invalid'
+    if valid is None:
+        raise ModelUnavailable(failure)
     accepted = []
     for claim in claims:
         check = valid.get(claim['number'], {})
@@ -248,6 +278,20 @@ def answer_question(index, query, mode, top_k, filters, include_review, min_cosi
             if any(v.casefold() in ('solution', 'assessment') for v in values('content_type')) or any(v.casefold() == 'review_required' for v in values('review')):
                 raise ValueError('Enable Include review-marked material to ask over solutions or assessments')
             filters['review'] = ['not_reviewed']  # Empty or mixed review filters cannot bypass the default.
+        from rag_data import DataService, route_question
+        route = route_question(query)
+        if route != 'text':
+            if source_paths is not None and (not isinstance(source_paths, list) or len(source_paths)>12 or not all(isinstance(p,str) for p in source_paths)):
+                raise ValueError('Provide up to 12 exact pinned source paths')
+            candidates = DataService(index).catalog(filters, source_paths, include_review)
+            return {'query':query, 'provider':'local-structured-router', 'route':route,
+                    'answer':'This needs a structured '+('calculation' if route=='computation' else 'lookup')+'. Open Data, confirm the file, sheet, range, date format, and operation, then run it. No calculation has been performed yet.',
+                    'datasets':candidates, 'claims':[], 'citations':[], 'conflicts':[], 'abstained':True,
+                    'warnings':[] if candidates else ['No eligible datasets match this scope. Adjust the filters or pins.'],
+                    'filters':filters, 'include_review':include_review, 'source_paths':source_paths,
+                    'elapsed_ms':round((time.perf_counter()-started)*1000,1),
+                    'note':'Structured operations run locally after your explicit confirmation; the model cannot execute code.',
+                    'retrieval':{'mode':mode,'eligible_chunks':0,'elapsed_ms':0,'generation':index.report['generation']}}
         retrieval = index.search(retrieval_query, mode, top_k, filters,
                                  min_cosine=min_cosine, source_paths=source_paths)
         results, stale = [], []

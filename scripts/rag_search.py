@@ -43,6 +43,11 @@ ROLES = {'lectures':'lecture', 'lecture_slides':'lecture', 'readings':'reading',
          'assets':'image', 'visuals':'image', 'topics':'topic', 'applications':'application',
          'syllabi':'syllabus'}
 GREEK = dict(zip('αβγδθελμρστφω', 'alpha beta gamma delta theta epsilon lambda mu rho sigma tau phi omega'.split()))
+
+
+def initial_document_cap(document_size, top_k):
+    """Diversify oversized documents without limiting single-source searches."""
+    return 1 if document_size > 200 else max(2, (top_k + 2) // 3)
 FILTER_KEYS = {'course', 'term', 'content_type', 'lecturer', 'folder', 'file_type', 'review'}
 
 
@@ -100,7 +105,7 @@ def source_metadata(row):
             'term': row.get('term') or ('Program-wide' if parts[0]=='Program-wide' else ''),
             'content_type': content_type, 'folder': path.parent.as_posix(),
             'file_type': path.suffix.lstrip('.').lower(), 'lecturer': lecturer,
-            'review': 'review_required' if content_type in ('solution','assessment') else row.get('access_review','not_reviewed'),
+            'review': 'review_required' if content_type in ('solution','assessment') or path.suffix.lower()=='.zip' else row.get('access_review','not_reviewed'),
             'version_family': family, 'version_label': version_match.group(1) if version_match else None,
             'content_hash': row['content_hash']}
 
@@ -408,6 +413,7 @@ class SearchIndex:
             matched={doc:[s for s in aliases if s['path'] in selected] for doc,aliases in matched.items()}
             matched={doc:aliases for doc,aliases in matched.items() if aliases}
         rows=list(self.db.execute('SELECT rowid,document_id,locator_type,locator_value FROM chunks'))
+        document_sizes=Counter(r['document_id'] for r in rows)
         eligible=[r['rowid'] for r in rows if r['document_id'] in matched]
         if phrase:
             eligible_set=set(eligible)
@@ -458,19 +464,43 @@ class SearchIndex:
                for rid in set(lexical)|set(semantic)}
         order=sorted(fused,key=lambda rid:(-fused[rid],rid))
         results,seen=[],set()
-        for rid in order:
+        # Keep a single long textbook or slide deck from occupying every
+        # visible result. Deferred hits fill any unused slots, so tightly
+        # filtered or pinned single-document searches still return top_k.
+        document_counts=defaultdict(int)
+        deferred=[]
+
+        def append_result(rid):
             row=self.db.execute('SELECT * FROM chunks WHERE rowid=?',(rid,)).fetchone()
             group=(row['document_id'],row['locator_type'],row['locator_value'])
             if group in seen:
-                continue
+                return False
             seen.add(group)
             result=self._result(row,matched[row['document_id']])
             result['score']=fused[rid]
             result['scores']={'lexical':lexical.get(rid),'semantic':semantic.get(rid)}
             result['excerpt']=result['text'][:500]
             results.append(result)
+            document_counts[row['document_id']]+=1
+            return True
+
+        for rid in order:
+            row=self.db.execute('SELECT * FROM chunks WHERE rowid=?',(rid,)).fetchone()
+            group=(row['document_id'],row['locator_type'],row['locator_value'])
+            if group in seen:
+                continue
+            document_cap=initial_document_cap(document_sizes[row['document_id']],top_k)
+            if document_counts[row['document_id']]>=document_cap:
+                deferred.append(rid)
+                continue
+            append_result(rid)
             if len(results)>=top_k:
                 break
+        if len(results)<top_k:
+            for rid in deferred:
+                append_result(rid)
+                if len(results)>=top_k:
+                    break
         return {'query':query,'mode':mode,'filters':filters,'literal_phrase':phrase,
                 'generation':self.report['generation'],'eligible_chunks':len(eligible),
                 'score_kind':'reciprocal_rank_fusion; ranking score, not confidence',
@@ -489,7 +519,7 @@ def pdf_highlight_markup(path, page_number, cache_dir, source_hash, citation_lab
     """Build a self-contained highlighted page using Poppler coordinates."""
     cache_dir.mkdir(parents=True, exist_ok=True)
     key=f'{source_hash}-p{page_number}'
-    html_path=cache_dir/(key+'.html')
+    html_path=cache_dir/(key+'-reader-v2.html')
     if html_path.is_file():
         return html_path
     png_path=cache_dir/(key+'.png')
@@ -532,7 +562,6 @@ def pdf_highlight_markup(path, page_number, cache_dir, source_hash, citation_lab
         raise RuntimeError(f'PDF coordinate extraction failed: {exc}') from exc
     image_data=base64.b64encode(png_path.read_bytes()).decode('ascii')
     safe_label=html.escape(citation_label,quote=True)
-    safe_title=html.escape(path.name,quote=True)
     overlays=''.join(f'<span class="evidence-box" style="left:{left:.4f}%;top:{top:.4f}%;width:{width:.4f}%;height:{height:.4f}%" aria-hidden="true"></span>'
                      for left,top,width,height in boxes)
     document=f'''<!doctype html>
@@ -541,22 +570,47 @@ def pdf_highlight_markup(path, page_number, cache_dir, source_hash, citation_lab
 <style>
 :root {{ color-scheme: light; }}
 * {{ box-sizing: border-box; }}
-html,body {{ margin:0; min-height:100%; background:#e8eef3; color:#102a43; font:14px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }}
-.shell {{ padding:20px; }}
-.caption {{ max-width:900px; margin:0 auto 14px; color:#536579; font-size:12px; }}
-.caption strong {{ color:#102a43; }}
+html,body {{ margin:0; min-height:100%; background:#edf1f5; color:#071747; font:14px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }}
+.shell {{ padding:16px 20px 24px; }}
+.preview-tools {{ display:flex; justify-content:space-between; align-items:center; gap:12px; max-width:900px; margin:0 auto 14px; color:#5f6c83; font-size:11px; }}
+.preview-tools label {{ display:flex; align-items:center; gap:6px; cursor:pointer; }}
+.preview-tools input {{ accent-color:#071747; }}
+.preview-tools input:focus-visible {{ outline:2px solid #72a9d5; outline-offset:3px; }}
 .page {{ position:relative; width:min(100%, {page_width:.2f}px); margin:0 auto; aspect-ratio:{page_width:.4f}/{page_height:.4f}; background:#fff; box-shadow:0 8px 24px rgba(16,42,67,.18); overflow:hidden; }}
 .page img {{ display:block; width:100%; height:100%; object-fit:fill; }}
-.evidence-box {{ position:absolute; background:rgba(185,217,235,.52); border:1px solid rgba(29,79,145,.45); border-radius:2px; mix-blend-mode:multiply; }}
+.evidence-box {{ position:absolute; background:rgba(185,217,235,.4); border-radius:2px; mix-blend-mode:multiply; }}
+.shell:has(#show-highlights:not(:checked)) .evidence-box {{ display:none; }}
 .legend {{ max-width:900px; margin:14px auto 0; color:#536579; font-size:11px; }}
-.swatch {{ display:inline-block; width:12px; height:12px; margin-right:5px; vertical-align:-2px; background:rgba(185,217,235,.75); border:1px solid rgba(29,79,145,.45); }}
-</style></head><body><main class="shell"><div class="caption"><strong>{safe_title}</strong> · {safe_label}</div><div class="page"><img src="data:image/png;base64,{image_data}" alt="{safe_label}">{overlays}</div><div class="legend"><span class="swatch"></span>Extracted text coordinates for this cited physical page. The original PDF remains the authoritative source.</div></main></body></html>'''
+</style></head><body><main class="shell"><div class="preview-tools"><span>PDF page {page_number}</span><label><input id="show-highlights" type="checkbox">Text highlights</label></div><div class="page"><img src="data:image/png;base64,{image_data}" alt="{safe_label}">{overlays}</div><div class="legend">Text highlights show extracted text across this physical page. Refer to Evidence &amp; details for the cited excerpt.</div></main></body></html>'''
     temporary=html_path.with_suffix('.html.tmp')
     temporary.write_text(document,encoding='utf-8');os.replace(temporary,html_path)
     return html_path
 
 
 def handler_for(index):
+    from rag_library import LibraryStore, LibraryConflict
+    from rag_data import DataService
+    from rag_import import ImportService
+    library = LibraryStore(index.root / '.rag' / 'library.sqlite')
+    structured = DataService(index)
+    intake = ImportService(index.root)
+    service_lock = threading.RLock()
+    library.recover_pending()
+
+    def reload_published_generation():
+        """Switch to an atomically published index between requests."""
+        nonlocal index, structured
+        pointer = index.root / '.rag/search/CURRENT.json'
+        generation = json.loads(pointer.read_text())['generation']
+        if generation == index.report['generation']:
+            return False
+        replacement = SearchIndex(index.root, index.model_dir)
+        previous = index
+        index = replacement
+        structured = DataService(replacement)
+        previous.close()
+        return True
+
     class Handler(BaseHTTPRequestHandler):
         STATIC_FILES = {
             '/': 'index.html',
@@ -564,6 +618,9 @@ def handler_for(index):
             '/viewer/': 'index.html',
             '/viewer/index.html': 'index.html',
             '/viewer/app.js': 'app.js',
+            '/viewer/library.js': 'library.js',
+            '/viewer/data.js': 'data.js',
+            '/viewer/import.js': 'import.js',
             '/viewer/styles.css': 'styles.css',
             '/viewer/maf-logo.png': 'maf-logo.png',
         }
@@ -573,32 +630,65 @@ def handler_for(index):
             print('search-api:',fmt.split('"')[0],file=sys.stderr)
 
         def do_GET(self):
-            with index.request_lock:
+            with service_lock:
+                reload_published_generation()
                 self.dispatch(head=False)
 
         def do_HEAD(self):
-            with index.request_lock:
+            with service_lock:
+                reload_published_generation()
                 self.dispatch(head=True)
 
         def do_POST(self):
-            self.connection.settimeout(15)
+            with service_lock:
+                reload_published_generation()
+                self.post_dispatch()
+
+        def post_dispatch(self):
+            self.connection.settimeout(120)
             try:
                 host=self.headers.get('Host','').split(':')[0]
                 if host not in ('localhost','127.0.0.1') or self.headers.get('Origin') not in (None,f'http://{self.headers.get("Host")}'):
                     self.reply(403,{'error':'Local same-origin requests only'});return
-                if urlparse(self.path).path!='/api/ask':
+                path = urlparse(self.path).path
+                if path not in ('/api/ask', '/api/library/items', '/api/library/delete', '/api/data/query', '/api/import'):
                     self.reply(404,{'error':'Unknown endpoint'});return
                 if self.headers.get_content_type()!='application/json' or self.headers.get('Transfer-Encoding'):
                     self.reply(415,{'error':'Use a JSON request body'});return
                 length=int(self.headers.get('Content-Length','0'))
-                if not 1<=length<=40000:
-                    self.reply(413,{'error':'Question context exceeds the 40 KB limit'});return
+                limit = 180_000_000 if path == '/api/import' else 8_100_000 if path == '/api/library/items' else 40000
+                if not 1<=length<=limit:
+                    self.reply(413,{'error':f'Request exceeds the {limit:,} byte limit'});return
                 payload=json.loads(self.rfile.read(length))
-                allowed={'query','mode','top_k','filters','include_review','min_cosine','source_paths','history','answer_style'}
+                if path == '/api/import':
+                    self.reply(202, intake.accept(payload));return
+                if path == '/api/data/query':
+                    self.reply(200, structured.query(payload));return
+                if path == '/api/library/items':
+                    self.reply(200, library.save(**payload));return
+                if path == '/api/library/delete':
+                    self.reply(200, library.delete(**payload));return
+                allowed={'query','mode','top_k','filters','include_review','min_cosine','source_paths','history','answer_style','saved_turn'}
                 if not isinstance(payload,dict) or set(payload)-allowed:
                     raise ValueError('Unknown question fields')
                 payload.setdefault('answer_style','synthesis')
-                self.reply(200,index.ask(**payload))
+                saved_turn = payload.pop('saved_turn', None)
+                if saved_turn is not None:
+                    if not isinstance(saved_turn,dict) or set(saved_turn) != {'item_id','turn_id'}:
+                        raise ValueError('Invalid saved question reference')
+                    library.begin_turn(**saved_turn, query=payload.get('query'))
+                try:
+                    answer = index.ask(**payload)
+                except Exception:
+                    if saved_turn:
+                        library.finish_turn(**saved_turn, error='The local answer could not complete. Please ask again.')
+                    raise
+                if saved_turn:
+                    revision = library.finish_turn(**saved_turn, data=answer)
+                    answer = {**answer, 'saved_revision': revision}
+                self.reply(200,answer)
+            except LibraryConflict as exc:
+                self.reply(409,{'error':str(exc)})
             except (ValueError,TypeError) as exc:
                 self.reply(400,{'error':str(exc)})
             except (RuntimeError,OSError) as exc:
@@ -617,7 +707,17 @@ def handler_for(index):
                 one=lambda k,d=None:params.get(k,[d])[0]
                 if parsed.path in self.STATIC_FILES:
                     self.serve_static(self.STATIC_FILES[parsed.path],head);return
-                if parsed.path=='/api/health':
+                if parsed.path == '/api/library':
+                    data={'items':library.list()}
+                elif parsed.path.startswith('/api/library/items/'):
+                    data=library.get(unquote(parsed.path[len('/api/library/items/'):]))
+                elif parsed.path=='/api/operations':
+                    paths=sorted((index.root/'.rag/operations/jobs').glob('*.json'), key=lambda p:p.stat().st_mtime, reverse=True)[:20]
+                    data={'jobs':[json.loads(p.read_text()) for p in paths], 'loaded_generation':index.report['generation']}
+                    data['restart_required']=False
+                elif parsed.path=='/api/import':
+                    data=intake.status()
+                elif parsed.path=='/api/health':
                     index.ensure_current()
                     data={'status':'ok','generation':index.report['generation'],
                           'chunks':index.report['chunk_count'],'vectors':len(index.vectors),
@@ -626,6 +726,15 @@ def handler_for(index):
                           'source_paths_without_chunks':len(index.report['sources_without_chunks'])}
                 elif parsed.path=='/api/filters':
                     data=index.filters()
+                elif parsed.path=='/api/data':
+                    data={'datasets': structured.catalog(include_review=one('include_review','false')=='true')}
+                elif parsed.path=='/api/data/schema':
+                    data=structured.describe(one('path'), include_review=one('include_review','false')=='true')
+                elif parsed.path=='/api/rich/status':
+                    report_path=index.root/'.rag'/'rich-extraction-report.json'
+                    data=json.loads(report_path.read_text()) if report_path.is_file() else {'documents':[], 'note':'Run the Stage 7 enrichment command to create this report.'}
+                elif parsed.path=='/api/member':
+                    self.serve_member(one('chunk',''),one('source',''),head);return
                 elif parsed.path=='/api/copilot/status':
                     from rag_copilot import LocalGenerator
                     data=LocalGenerator().status()
@@ -662,7 +771,7 @@ def handler_for(index):
             if not path.is_file():
                 self.reply(404,{'error':'Viewer asset unavailable'});return
             payload=path.read_bytes()
-            content_type={'index.html':'text/html; charset=utf-8','app.js':'text/javascript; charset=utf-8',
+            content_type={'index.html':'text/html; charset=utf-8','app.js':'text/javascript; charset=utf-8','library.js':'text/javascript; charset=utf-8','data.js':'text/javascript; charset=utf-8','import.js':'text/javascript; charset=utf-8',
                           'styles.css':'text/css; charset=utf-8','maf-logo.png':'image/png'}[name]
             self.send_response(200);self.send_header('Content-Type',content_type)
             self.send_header('Content-Length',str(len(payload)));self.send_header('Cache-Control','no-store')
@@ -672,6 +781,29 @@ def handler_for(index):
 
         def root_viewer(self):
             return index.root/'viewer'
+
+        def serve_member(self,chunk_id,source_path,head=False):
+            from rag_rich import member_bytes
+            hit=index.resolve(chunk_id,source_path)
+            provenance=hit['provenance']
+            if not provenance.get('archive_members'):
+                raise ValueError('Citation is not an archive member')
+            verified=self.verify_indexed_source(source_path)
+            if not verified:return
+            row,path=verified
+            payload=member_bytes(path,provenance['archive_members'])
+            if hashlib.sha256(payload).hexdigest()!=provenance['member_hash'] or digest_file(path)!=row['content_hash']:
+                raise ValueError('Archive or member changed')
+            suffix=Path(provenance['archive_members'][-1]).suffix.lower()
+            if not re.fullmatch(r'\.[a-z0-9]{1,10}',suffix):suffix='.bin'
+            mime={'.pdf':'application/pdf','.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg','.gif':'image/gif'}.get(suffix,'application/octet-stream')
+            self.send_response(200);self.send_header('Content-Type',mime)
+            self.send_header('Content-Length',str(len(payload)));self.send_header('Cache-Control','no-store')
+            self.send_header('X-Content-Type-Options','nosniff')
+            self.send_header('Content-Security-Policy',"sandbox; default-src 'none'")
+            self.send_header('Content-Disposition',('attachment' if mime=='application/octet-stream' else 'inline')+'; filename="archive-member'+suffix+'"')
+            self.end_headers()
+            if not head:self.wfile.write(payload)
 
         def verify_indexed_source(self,source_path):
             if not source_path or len(source_path)>2000:
@@ -822,6 +954,7 @@ def handler_for(index):
             self.send_header('Content-Length',str(len(payload)))
             self.send_header('Cache-Control','no-store');self.send_header('X-Content-Type-Options','nosniff')
             self.end_headers();self.wfile.write(payload)
+    Handler.close_active_index = staticmethod(lambda: index.close())
     return Handler
 
 
@@ -864,10 +997,11 @@ def main():
             elif args.command=='status':
                 index.ensure_current();print(json.dumps(index.report,ensure_ascii=False,indent=2))
             elif args.command=='serve':
-                server=ThreadingHTTPServer(('127.0.0.1',args.port),handler_for(index))
+                handler=handler_for(index)
+                server=ThreadingHTTPServer(('127.0.0.1',args.port),handler)
                 print(f'Search API ready at http://127.0.0.1:{server.server_port}/api/health',flush=True)
                 try: server.serve_forever()
-                finally: server.server_close()
+                finally: server.server_close();handler.close_active_index()
         finally:
             index.close()
     except (ValueError,RuntimeError,OSError,sqlite3.Error) as exc:

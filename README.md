@@ -14,11 +14,48 @@ Key features:
 - Stable citations that preserve source aliases, versions, hashes, and exact PDF pages, slides, ranges, cells, or blocks.
 - Local viewer with evidence drawer, PDF page jumps and text overlays, PowerPoint slide previews, format-aware fallbacks, deep links, and coverage/review views.
 - Local Qwen3 4B Copilot with follow-up questions, pinned-document scope, review-policy warnings, exact supporting quotations, abstention, conflict presentation, and citation click-through.
-- Loopback-only service, source-hash verification, no external inference upload, and a 22-test integration suite plus live Copilot checks.
+- Persistent conversations, drafts and pins, with a Saved area for passages, answers, and calculation snapshots; JSON exports keep research portable.
+- Stage 7 Data workspace: workbook sheets, original cells/formulas, dataset schemas, explicit date interpretation, and reproducible numerical operations with source/engine fingerprints.
+- Image OCR and bounded nested ZIP search with member-level provenance, verified member opening, and visible extraction limits.
+- Stage 8 incremental refresh with change detection, retryable jobs, saved filter views, consistent research backups, automatic generation adoption, and an auditable release gate.
+- CU-themed responsive interface built around the supplied Columbia Mathematics of Finance lockup, with deep navy navigation, Columbia-blue evidence states, and a structured two-step Data workflow.
+- Loopback-only service, source-hash verification, no external inference upload, and regression/browser acceptance checks.
+
+Personal research lives in Git-ignored `.rag/library.sqlite`. Unlike the index, it cannot be rebuilt from the course files. Back it up; do not delete the whole `.rag/` directory to refresh search.
+
+### One-click launch on macOS
+
+After the one-time setup below, double-click **`Course Archive.app`** in the repository folder. It starts the local viewer and answer model, waits for the archive to be ready, and opens it in the default browser. If macOS blocks the unsigned local app the first time, Control-click it, choose **Open**, then confirm **Open**. `Launch Course Archive.command` is a double-clickable Terminal fallback.
+
+The equivalent command is:
+
+```bash
+python3 scripts/run_rag.py --port 8765 --open
+```
+
+One-time setup on a new Mac:
+
+```bash
+git lfs install
+git lfs pull
+python3 -m pip install --target .rag/runtime -r rag/requirements-data.txt
+brew install ollama tesseract poppler libreoffice
+OLLAMA_HOST=127.0.0.1:11434 OLLAMA_MODELS="$PWD/.rag/models/ollama" OLLAMA_NO_CLOUD=1 ollama serve
+# In a second Terminal window, once:
+OLLAMA_HOST=127.0.0.1:11434 OLLAMA_MODELS="$PWD/.rag/models/ollama" ollama pull qwen3:4b
+```
+
+If the derived index is absent on a fresh clone, run the Stage 1–4 commands below once before launching. The `.app` stays inside the repository because its launcher resolves the scripts and local index relative to that folder.
+
+### Add documents and publish them
+
+Open **Add docs** in the app, choose an existing course or program folder, select up to 20 supported documents, then click **Import, verify & publish**. Each file is checksum-verified and saved locally without overwriting an existing filename. In the background the app runs incremental extraction and OCR, rebuilds the index, runs the full Stage 8 release gate, commits only the uploaded source files through Git LFS, and pushes the current branch to `origin`. The status card shows every stage and the resulting commit.
+
+Files may be PDF, PowerPoint, Word, Excel, CSV/TSV, notebook, code/text/Markdown/TeX, image, or ZIP. The limit is 64 MB per file and 128 MB per batch. Choose an existing folder so course metadata remains predictable; create and document a new course folder in Git before using it as a destination. If indexing, release validation, authentication, or pushing fails, the documents remain in the selected local folder and the job card keeps the error. Fix the reported problem and submit the uncommitted files again after moving or renaming the originals, or use the manual recovery commands in [rag/README.md](rag/README.md#document-intake-and-github-publishing).
 
 ### Run it stage by stage
 
-Run these commands from the repository root. Stages 1–3 create the derived ingestion records, Stage 4 builds retrieval, Stage 5 opens the citation-first viewer, and Stage 6 adds local synthesis.
+Run these commands from the repository root. Stages 1–3 create the derived ingestion records, Stage 4 builds retrieval, Stage 5 opens the citation-first viewer, Stage 6 adds local synthesis, Stage 7 adds rich data, and Stage 8 operates and evaluates the release.
 
 ```bash
 # Stage 1 — inventory the archive
@@ -40,11 +77,35 @@ python3 scripts/rag_search.py serve --port 8765
 Open [the local viewer](http://127.0.0.1:8765/) after Stage 5. To run Stages 5–6 together with the local Qwen model, stop the Stage 5 process and use:
 
 ```bash
-python3 scripts/run_rag.py
-open 'http://127.0.0.1:8765/?view=copilot'
+python3 scripts/run_rag.py --open
 ```
 
 For a fresh machine, install the pinned search dependencies from [rag/README.md](rag/README.md), provision the local MiniLM embedding snapshot, and install/pull Ollama’s `qwen3:4b` model for Stage 6. The full API, runtime, rebuild, OCR, test, evaluation, coverage, and locator instructions are in [rag/README.md](rag/README.md); the implementation plan is in [plan.md](plan.md) and the living delivery record is in [status.md](status.md).
+
+The accepted local generation represents all 635 course/program-wide source paths: 629 canonical documents, 28,056 searchable chunks, 186,176 semantic windows, zero empty extraction outcomes, and zero extraction errors. The release gate requires those zero-gap counts and passes all 18 checks.
+
+Stage 7 (after the baseline ingestion; Tesseract and the ingestion libraries must be installed):
+
+```bash
+python3 -m pip install --target .rag/runtime -r rag/requirements-data.txt
+python3 scripts/rag_rich.py
+python3 scripts/rag_pipeline.py normalize
+python3 scripts/rag_search.py build
+# Start the local viewer and Copilot:
+python3 scripts/run_rag.py
+```
+
+Open [Data](http://127.0.0.1:8765/?view=data). Choose a source and sheet, preview its cells, then confirm the range, column and operation. Save or export the result with its recipe. The [Stage 7 runbook](rag/README.md#stage-7-data-images-and-archives) explains limitations, replay, and personal-library backup.
+
+Stage 8 refresh and release gate:
+
+```bash
+python3 scripts/rag_operations.py scan
+python3 scripts/rag_operations.py refresh
+python3 scripts/evaluate_rag_release.py
+```
+
+The refresh reuses unchanged extraction and embeddings, records added/changed/deleted sources, backs up personal research, and publishes atomically. A running viewer adopts the new generation between requests. The release command combines retrieval, archive-wide citation/coverage, performance, size, extraction, and live Copilot checks; thresholds are versioned in [rag/release-thresholds.json](rag/release-thresholds.json).
 
 ## Fall 2025
 

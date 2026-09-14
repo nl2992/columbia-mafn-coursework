@@ -1,0 +1,3 @@
+# Existing ingestion environment supplies openpyxl and Pillow.
+# Read-only BIFF reader: no Excel execution or conversion is needed.
+xlrd==2.0.1

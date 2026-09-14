@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "core_retrieval_hits_at_5": 14,
+  "maximum_citation_errors": 0,
+  "minimum_archive_diagnostic_recall_at_5": 0.9,
+  "maximum_missing_text_sources": 0,
+  "maximum_extraction_error_documents": 0,
+  "maximum_median_warm_search_ms": 500,
+  "maximum_index_bytes": 600000000,
+  "copilot_passed": 8,
+  "copilot_total": 8,
+  "minimum_answer_correctness": 1.0,
+  "minimum_abstention_accuracy": 1.0,
+  "minimum_quotation_validation_rate": 1.0
+}

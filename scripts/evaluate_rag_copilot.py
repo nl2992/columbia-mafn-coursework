@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 import time
 
-from rag_search import ROOT, SearchIndex
+from rag_search import ROOT, SearchIndex, now
 from rag_copilot import LocalGenerator, normalized, verify_claims
 
 
@@ -27,8 +27,8 @@ def main():
          'filters':{'course':['MATHGR5010'],'content_type':['lecture']},'term':'money'},
         {'id':'unanswerable','query':'What is the gamma exposure of my personal investment portfolio today?',
          'filters':{'course':['MATHGR5010'],'content_type':['lecture']},'abstain':True},
-        {'id':'missing-coverage','query':'What is expected shortfall?',
-         'filters':{'course':['MATHGR5320'],'content_type':['lecture']},'abstain':True}]
+        {'id':'risk-expected-shortfall','query':'What is expected shortfall?',
+         'filters':{'course':['MATHGR5320'],'content_type':['lecture']},'term':'expected'}]
     reports=[]
     try:
         for case in cases:
@@ -57,7 +57,14 @@ def main():
             reports.append({'id':identifier,'passed':bool(approved)==expected,'accepted':bool(approved)})
             print(json.dumps(reports[-1]),flush=True)
     finally:index.close()
-    report={'model':model.status(),'cases':reports,'passed':sum(c['passed'] for c in reports),'total':len(reports),
+    question_reports=reports[:len(cases)]
+    answerable=[r for r,c in zip(question_reports,cases) if not c.get('abstain')]
+    abstention=[r for r,c in zip(question_reports,cases) if c.get('abstain')]
+    report={'generated_at':now(),'generation':index.report['generation'],'model':model.status(),
+            'cases':reports,'passed':sum(c['passed'] for c in reports),'total':len(reports),
+            'answer_correctness':sum(r['passed'] for r in answerable)/max(1,len(answerable)),
+            'abstention_accuracy':sum(r['passed'] for r in abstention)/max(1,len(abstention)),
+            'quotation_validation_rate':sum(r.get('quotes_valid',True) for r in reports)/max(1,len(reports)),
             'scope':'Small development smoke set. Model support checks are fallible and do not measure general accuracy.'}
     target=args.root/'.rag/copilot-evaluation.json'
     target.write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n')
