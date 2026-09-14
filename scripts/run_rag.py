@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Start the archive viewer and its local answer model; stop owned processes with Ctrl-C."""
 import argparse
+import fcntl
 import os
 from pathlib import Path
 import shutil
@@ -33,13 +34,26 @@ def main():
         print(f'Archive service is already running: {url}')
         if args.open:webbrowser.open(url)
         return
+    logs=ROOT/'.rag/logs';logs.mkdir(parents=True,exist_ok=True)
+    launch_lock=(logs/f'launcher-{args.port}.lock').open('a')
+    try:
+        fcntl.flock(launch_lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
+    except BlockingIOError:
+        for _ in range(80):
+            if available(url+'api/health'):
+                print(f'Archive service is ready: {url}')
+                if args.open:webbrowser.open(url)
+                launch_lock.close()
+                return
+            time.sleep(.25)
+        launch_lock.close()
+        raise SystemExit('Another launcher is still starting the archive; see .rag/logs/course-archive-app.log')
     processes=[];log=None
     try:
         if not available('http://127.0.0.1:11434/api/tags'):
             binary=shutil.which('ollama')
             if not binary:
                 raise SystemExit('Install Ollama with brew install ollama; see rag/README.md for model setup.')
-            logs=ROOT/'.rag/logs';logs.mkdir(parents=True,exist_ok=True)
             log=(logs/'ollama.log').open('a')
             env={**os.environ,'OLLAMA_HOST':'127.0.0.1:11434','OLLAMA_NO_CLOUD':'1',
                  'OLLAMA_MODELS':str(ROOT/'.rag/models/ollama'),'OLLAMA_NUM_PARALLEL':'1',
@@ -73,6 +87,7 @@ def main():
                 try:process.wait(timeout=10)
                 except subprocess.TimeoutExpired:process.kill();process.wait()
         if log:log.close()
+        launch_lock.close()
 
 
 if __name__=='__main__':main()
