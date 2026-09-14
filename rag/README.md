@@ -2,7 +2,7 @@
 
 ## Document intake and GitHub publishing
 
-After a routine `git pull`, double-click the CU-themed `Course Archive.app` in Finder. The `START HERE - Open Course Archive.command` file is a visible fallback, and `python3 scripts/run_rag.py --open` is the equivalent terminal command. Startup failures produce a macOS alert and open `.rag/logs/course-archive-app.log`. Open **Add docs**, select an existing archive folder and one or more documents, then click **Import, verify & publish**. The browser hashes every selection; the server decodes it only on loopback, verifies its size and SHA-256, rejects path traversal, unsupported types, symlinks, collisions and oversized batches, and writes each file atomically.
+After a routine `git pull`, double-click the CU-themed `Course Archive.app` in Finder. Double-click `INSTALL ON DESKTOP.command` once to install a Desktop copy that remembers this checkout; `START HERE - Open Course Archive.command` is the in-repository fallback, and `python3 scripts/run_rag.py --open` is the equivalent terminal command. Startup failures produce a macOS alert and open `.rag/logs/course-archive-app.log`. Open **Add docs**, select an existing archive folder and one or more documents, then click **Import, verify & publish**. The browser hashes every selection; the server decodes it only on loopback, verifies its size and SHA-256, rejects path traversal, unsupported types, symlinks, collisions and oversized batches, and writes each file atomically.
 
 One intake job runs at a time. It executes, in order:
 

@@ -2,7 +2,21 @@
 set -u
 
 script_dir="${0:A:h}"
-repo_root="${script_dir}/../../.."
+bundle_repo="${script_dir}/../../.."
+path_file="${script_dir}/../Resources/repository-path.txt"
+repo_root=""
+if [[ -f "${bundle_repo}/scripts/run_rag.py" ]]; then
+  repo_root="${bundle_repo}"
+elif [[ -f "${path_file}" ]]; then
+  configured_root="$(<"${path_file}")"
+  [[ -f "${configured_root}/scripts/run_rag.py" ]] && repo_root="${configured_root}"
+elif [[ -f "${HOME}/Desktop/Canvas Files/scripts/run_rag.py" ]]; then
+  repo_root="${HOME}/Desktop/Canvas Files"
+fi
+if [[ -z "${repo_root}" ]]; then
+  /usr/bin/osascript -e 'display alert "Course Archive repository not found" message "Run INSTALL ON DESKTOP.command from the pulled repository, or launch Course Archive.app from inside the repository." as critical' >/dev/null 2>&1
+  exit 1
+fi
 cd "${repo_root}" || exit 1
 mkdir -p .rag/logs
 
