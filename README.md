@@ -33,7 +33,7 @@ git pull → double-click Course Archive.app → the local UI opens
 
 If startup fails, the app shows an alert and opens `.rag/logs/course-archive-app.log` with the exact error instead of failing invisibly. Simultaneous clicks share a launcher lock and wait for the same local service, avoiding port-conflict alerts.
 
-To place a working app icon directly on the Desktop, double-click **`INSTALL ON DESKTOP.command`** once. It copies the app to `~/Desktop/Course Archive.app`, records the location of this checkout inside that Desktop copy, and launches it. Future code and document updates still come from `git pull` in the repository; the Desktop app continues to launch that checkout.
+To place a working app icon directly on the Desktop, double-click **`INSTALL ON DESKTOP.command`** once. It copies the universal native macOS applet to `~/Desktop/Course Archive.app`, records the location of this checkout, applies a local ad-hoc signature, registers the app with Finder, and launches it. Future code and document updates still come from `git pull` in the repository; the Desktop app continues to launch that checkout.
 
 The equivalent command is:
 

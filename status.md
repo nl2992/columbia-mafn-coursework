@@ -188,6 +188,7 @@ No further design choice is needed to use Stages 4–7. The current choices are 
 - Added `Course Archive.app` and `START HERE - Open Course Archive.command` for Finder launch, plus the equivalent `python3 scripts/run_rag.py --open` path and complete new-Mac, upload, publishing, and recovery instructions. The app now has a dedicated navy/Columbia-blue archive icon and opens its diagnostic log with a visible alert when startup fails.
 - Refined the icon with a Columbia-style crown at upper right and a true alpha-transparent exterior while preserving opaque white document/chart details. Added `INSTALL ON DESKTOP.command`; installed copies retain an explicit checkout path and continue launching the pulled repository.
 - Serialized app startup per port so simultaneous Finder launches wait for one healthy service rather than racing to bind port 8765.
+- Replaced the shell-script bundle entry point with a universal native macOS applet. The Desktop installer now signs and registers the configured copy before launching it, preventing Finder from silently declining to execute the app.
 
 ### Extraction coverage completion — 2026-09-14
 

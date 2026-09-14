@@ -11,6 +11,10 @@ if [[ ! -d "${source_app}" ]]; then
 fi
 
 /usr/bin/ditto "${source_app}" "${desktop_app}"
+# Remove the obsolete shell entry point left by pre-native Desktop installs.
+/bin/rm -f "${desktop_app}/Contents/MacOS/launch"
 print -r -- "${repo_root}" > "${desktop_app}/Contents/Resources/repository-path.txt"
+/usr/bin/codesign --force --deep --sign - "${desktop_app}"
 /usr/bin/touch "${desktop_app}"
-/usr/bin/open "${desktop_app}"
+/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -f "${desktop_app}"
+/usr/bin/open -n "${desktop_app}"
