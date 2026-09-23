@@ -38,7 +38,7 @@ gh auth login
 
 ## 2. Run the one-time setup
 
-In Finder, open the cloned folder and double-click **SET UP THIS MAC.command**. You can run the same setup from Terminal:
+In Finder, open the cloned folder and double-click **Course Archive.app** or **START HERE - Open Course Archive.command**. If the local index is missing, setup opens automatically in Terminal. You can also double-click **SET UP THIS MAC.command** directly. You can run the same setup from Terminal:
 
 ```bash
 ./SET\ UP\ THIS\ MAC.command
@@ -69,7 +69,7 @@ cd ~/path/to/columbia-mafn-coursework
 git pull --ff-only
 ```
 
-The Desktop app remembers the checkout path. If a pull changes `Course Archive.app` or its launcher, double-click **INSTALL ON DESKTOP.command** again to refresh the Desktop copy.
+The Desktop app remembers the checkout path and runs the launch script from that checkout, including updates received through `git pull`. Desktop copies installed before this launcher fix need **INSTALL ON DESKTOP.command** once. Changes to the native app bundle itself still require reinstalling the Desktop copy. A fresh clone cannot launch instantly: model downloads and the first index build must finish first.
 
 ## 4. Add and publish documents
 
@@ -115,3 +115,5 @@ git push --dry-run origin HEAD
 If the app says the local answer model is missing, rerun **SET UP THIS MAC.command**. If Finder still shows an older app after a pull, rerun **INSTALL ON DESKTOP.command** and then open the new Desktop copy.
 
 For extraction recovery, manual stage commands, backups, API details, and release checks, see the [RAG operations runbook](../rag/README.md).
+
+Desktop launchers explicitly include both Homebrew install locations in their command search path. If an older Desktop copy reports that Ollama is missing even though it is installed, pull the latest code and run **INSTALL ON DESKTOP.command** once.

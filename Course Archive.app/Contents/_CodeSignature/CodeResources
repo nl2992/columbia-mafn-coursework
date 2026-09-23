@@ -23,10 +23,10 @@
 		<dict>
 			<key>cdhash</key>
 			<data>
-			+fRj+5OEwLbCYJjKJJp3x0c3bBg=
+			VEqr8ZfTRA2sUGG7vYp+5zIcmy8=
 			</data>
 			<key>requirement</key>
-			<string>cdhash H"d4c73517367603fba3c3d1e64b9928199ed92e94" or cdhash H"f9f463fb9384c0b6c26098ca249a77c747376c18"</string>
+			<string>cdhash H"356bf6d8a488ac76a34a597eb08456b65732377b" or cdhash H"544aabf197d3440dac5061bbbd8a7ee7321c9b2f"</string>
 		</dict>
 		<key>Resources/CourseArchive.icns</key>
 		<dict>

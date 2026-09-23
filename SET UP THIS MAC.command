@@ -1,6 +1,9 @@
 #!/bin/zsh
 set -euo pipefail
 
+# Finder/Terminal launches must find Homebrew on both Apple silicon and Intel.
+export PATH="/opt/homebrew/bin:/usr/local/bin:${PATH:-/usr/bin:/bin:/usr/sbin:/sbin}"
+
 repo_root="${0:A:h}"
 cd "${repo_root}"
 mkdir -p .rag/runtime .rag/models/minilm .rag/logs
@@ -23,10 +26,8 @@ if ! command -v git >/dev/null 2>&1; then
   print -u2 "Git is required. Run: xcode-select --install"
   exit 1
 fi
-if ! command -v python3 >/dev/null 2>&1; then
-  print -u2 "Python 3 is required. Install it with: brew install python"
-  exit 1
-fi
+# Use Homebrew Python, not the developer-tools Python bundled with macOS.
+if ! brew list python >/dev/null 2>&1; then brew install python; fi
 
 print "[1/7] Fetching Git LFS course assets"
 if ! command -v git-lfs >/dev/null 2>&1; then brew install git-lfs; fi

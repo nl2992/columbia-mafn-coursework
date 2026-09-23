@@ -1,6 +1,9 @@
 #!/bin/zsh
 set -u
 
+# Finder does not inherit the interactive shell's Homebrew search path.
+export PATH="/opt/homebrew/bin:/usr/local/bin:${PATH:-/usr/bin:/bin:/usr/sbin:/sbin}"
+
 script_dir="${0:A:h}"
 bundle_repo="${script_dir}/../../.."
 path_file="${script_dir}/../Resources/repository-path.txt"
@@ -21,7 +24,7 @@ cd "${repo_root}" || exit 1
 mkdir -p .rag/logs
 
 log_file="${repo_root}/.rag/logs/course-archive-app.log"
-/usr/bin/env python3 scripts/run_rag.py --port 8765 --open >> "${log_file}" 2>&1
+/bin/zsh "${repo_root}/START HERE - Open Course Archive.command" >> "${log_file}" 2>&1
 launch_code=$?
 if (( launch_code != 0 )); then
   /usr/bin/osascript -e 'display alert "Course Archive could not start" message "Open .rag/logs/course-archive-app.log in the repository for the exact error. The README contains the one-time setup steps." as critical' >/dev/null 2>&1

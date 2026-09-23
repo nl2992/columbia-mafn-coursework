@@ -25,7 +25,7 @@ Personal research lives in Git-ignored `.rag/library.sqlite`. Unlike the index, 
 
 ### One-click setup and launch on macOS
 
-On a new Mac, clone the repository and double-click **`SET UP THIS MAC.command`**. It installs the pinned local runtime and document tools, downloads and verifies both local models, builds the private index, installs the Desktop app, and opens it. See the **[illustrated setup guide](docs/SETUP.md)** for prerequisites, screenshots, GitHub access, document publishing, and troubleshooting.
+On a new Mac with Homebrew installed, clone the repository and double-click **`Course Archive.app`** (or **`START HERE - Open Course Archive.command`**). When the local index is absent, the launcher opens **`SET UP THIS MAC.command`** in Terminal automatically. It installs the pinned local runtime and document tools, downloads and verifies both local models, builds the private index, installs the Desktop app, and opens it. See the **[illustrated setup guide](docs/SETUP.md)** for prerequisites, screenshots, GitHub access, document publishing, and troubleshooting.
 
 After `git pull`, open the repository folder and double-click the navy-and-Columbia-blue **`Course Archive.app`** icon. It starts the local viewer and answer model, waits for the archive to be ready, and opens the UI in the default browser. If macOS blocks the unsigned local app the first time, Control-click it, choose **Open**, then confirm **Open**. **`START HERE - Open Course Archive.command`** is the clearly named double-clickable Terminal fallback.
 
@@ -35,7 +35,7 @@ git pull → double-click Course Archive.app → the local UI opens
 
 If startup fails, the app shows an alert and opens `.rag/logs/course-archive-app.log` with the exact error instead of failing invisibly. Simultaneous clicks share a launcher lock and wait for the same local service, avoiding port-conflict alerts.
 
-To place a working app icon directly on the Desktop, double-click **`INSTALL ON DESKTOP.command`** once. It copies the universal native macOS applet to `~/Desktop/Course Archive.app`, records the location of this checkout, applies a local ad-hoc signature, registers the app with Finder, and launches it. Future code and document updates still come from `git pull` in the repository; the Desktop app continues to launch that checkout.
+To place a working app icon directly on the Desktop, double-click **`INSTALL ON DESKTOP.command`** once. It copies the universal native macOS applet to `~/Desktop/Course Archive.app`, records the location of this checkout, applies a local ad-hoc signature, registers the app with Finder, and launches it. Future code and document updates still come from `git pull` in the repository; the Desktop app delegates to the launch script in that checkout, so launcher updates also take effect after pulling. Desktop copies installed before this fix need **`INSTALL ON DESKTOP.command`** once.
 
 The equivalent command is:
 
