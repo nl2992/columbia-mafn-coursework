@@ -2,6 +2,8 @@
 
 Organized course and program materials for the Columbia MAFN coursework archive.
 
+**[Start here: step-by-step Mac setup with screenshots — clone, Download ZIP, pull updates, and launch →](docs/SETUP.md)**
+
 Each course folder contains its own `README.md` with the course map, module sequence, and links to the organized materials. Source filenames and explicit version variants are preserved unless a directory name was normalized for navigation.
 
 ## Local RAG research assistant
