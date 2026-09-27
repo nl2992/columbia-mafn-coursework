@@ -8,7 +8,7 @@ const STOPWORDS = new Set(('a an the and or of in on at to for from with as is a
   'using use used between vs versus there their them they we our us than then so if not no yes any all some such').split(' '));
 
 const $ = (id) => document.getElementById(id);
-const state = { config: {}, pagefind: null, stats: null, results: [], shown: 0, selected: null, engine: null, engineModel: null,
+const state = { config: {}, pagefind: null, stats: null, results: [], shown: 0, selected: null, engine: null,
   workbook: null, dataset: null, datasets: [], lastData: null };
 
 function esc(text) {
@@ -57,7 +57,7 @@ function showView(name) {
   if (name === 'library') params.delete('view'); else params.set('view', name);
   history.replaceState(null, '', `${location.pathname}${params.toString() ? '?' + params : ''}${location.hash}`);
   if (name === 'data') initData();
-  if (name === 'copilot') checkWebGPU();
+  if (name === 'copilot') $('ask').focus();
 }
 document.querySelectorAll('.nav-item').forEach((b) => b.addEventListener('click', () => showView(b.dataset.view)));
 
@@ -83,19 +83,17 @@ function syncUrl() {
 async function initLibrary() {
   try {
     const [pagefind, stats, config] = await Promise.all([import('./pagefind/pagefind.js'), fetch('data/stats.json').then((r) => r.json()),
-      fetch('config.json').then((r) => (r.ok ? r.json() : {})).catch(() => ({}))]);
+      fetch('config.json', { cache: 'no-cache' }).then((r) => (r.ok ? r.json() : {})).catch(() => ({}))]);
     state.config = config;
-    if (config.copilot_endpoint) {
-      $('model').add(new Option('Hosted Qwen3 30B · no download', HOSTED), 0);
-      $('model').value = HOSTED;
-    }
-    updateModelStatus();
+    $('model-status').textContent = config.copilot_endpoint
+      ? 'Only your question and the matching passages are sent to the answer service, and nothing is stored.'
+      : 'Answers run on this device. The first question downloads a 2.3 GB model that your browser keeps.';
     await pagefind.options({ excerptLength: 34 });
     await pagefind.init();
     state.pagefind = pagefind; state.stats = stats;
     const filters = await pagefind.filters();
-    fillSelect('f-course', filters.course); fillSelect('c-course', filters.course);
-    fillSelect('f-term', filters.term); fillSelect('c-term', filters.term);
+    fillSelect('f-course', filters.course);
+    fillSelect('f-term', filters.term);
     fillSelect('f-material', filters.material); fillSelect('f-file_type', filters.file_type);
     setStatus('Library ready', `${stats.documents.toLocaleString()} documents · in your browser`, 'ready');
     renderStats(stats);
@@ -190,41 +188,19 @@ function showSource(item, terms = []) {
 }
 
 /* ---------- Copilot ---------- */
-const HOSTED = 'hosted';
-const usingHosted = () => $('model').value === HOSTED;
-function updateModelStatus() {
-  $('model-status').textContent = usingHosted()
-    ? 'Nothing to download: Qwen3 30B answers on Cloudflare. Your question and the retrieved passages are sent to it and not stored.'
-    : 'Runs on your device: the model downloads once on first use and is cached by your browser. Nothing you ask leaves your browser.';
+// The Copilot answers with the hosted model; if that is unavailable, a per-answer button offers to
+// run Qwen3 4B on the visitor's own GPU instead (one-time download).
+const LOCAL_MODEL = 'Qwen3-4B-q4f16_1-MLC';
+async function hasWebGPU() {
+  if (!('gpu' in navigator)) return false;
+  try { return Boolean(await navigator.gpu.requestAdapter()); } catch { return false; }
 }
-async function checkWebGPU() {
-  const notice = $('webgpu-notice');
-  if (usingHosted()) { notice.hidden = true; $('ask-submit').disabled = false; return true; }
-  let ok = 'gpu' in navigator;
-  if (ok) { try { ok = Boolean(await navigator.gpu.requestAdapter()); } catch { ok = false; } }
-  notice.hidden = ok;
-  if (!ok) notice.textContent = state.config.copilot_endpoint
-    ? 'This browser has no WebGPU, so in-browser models can’t run here. Choose the hosted model, which needs no download.'
-    : 'This browser has no WebGPU, so the Copilot cannot run here. Use a current version of Chrome, Edge, or Safari on a computer. Library search and Data still work.';
-  $('ask-submit').disabled = !ok;
-  return ok;
-}
-$('model').addEventListener('change', () => { updateModelStatus(); checkWebGPU(); });
-async function loadEngine() {
-  const model = $('model').value;
-  if (state.engine && state.engineModel === model) return state.engine;
+async function loadEngine(status) {
+  if (state.engine) return state.engine;
   const webllm = await import(WEBLLM_URL);
-  $('model-progress').hidden = false;
-  const report = ({ progress, text }) => {
-    $('model-progress-bar').style.width = `${Math.round((progress || 0) * 100)}%`;
-    $('model-status').textContent = text || 'Loading the model…';
-  };
-  if (state.engine) { await state.engine.reload(model); } else {
-    state.engine = await webllm.CreateMLCEngine(model, { initProgressCallback: report });
-  }
-  state.engineModel = model;
-  $('model-progress').hidden = true;
-  $('model-status').textContent = `${model.split('-q')[0]} is loaded on this device.`;
+  state.engine = await webllm.CreateMLCEngine(LOCAL_MODEL, {
+    initProgressCallback: ({ progress }) => status(`Loading the model onto this device (one time only)… ${Math.round((progress || 0) * 100)}%`),
+  });
   return state.engine;
 }
 
@@ -284,64 +260,88 @@ const ANSWER_SCHEMA = JSON.stringify({
 });
 
 async function composeHosted(question, passages, terms) {
-  const response = await fetch(`${state.config.copilot_endpoint}/answer`, {
-    method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ question, passages: passages.map((p) => ({ title: p.meta.title, locator: p.meta.locator, text: passageWindow(p.content, terms) })) }),
-  });
+  let response;
+  try {
+    response = await fetch(`${state.config.copilot_endpoint}/answer`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ question, passages: passages.map((p) => ({ title: p.meta.title, locator: p.meta.locator, text: passageWindow(p.content, terms) })) }),
+    });
+  } catch (error) {
+    throw Object.assign(new Error('The answer service is unreachable'), { hosted: true });
+  }
   const data = await response.json().catch(() => ({}));
   if (!response.ok) throw Object.assign(new Error(data.error || `The hosted Copilot returned ${response.status}`), { hosted: true, quota: Boolean(data.quota) });
   return { content: data.content, label: 'Qwen3 30B on Cloudflare' };
 }
-async function composeInBrowser(question, passages, terms, body) {
+async function composeInBrowser(question, passages, terms, status) {
   const context = passages.map((p, i) => `[${i + 1}] ${p.meta.title} (${p.meta.locator})\n${passageWindow(p.content, terms)}`).join('\n\n');
-  const engine = await loadEngine();
-  body.innerHTML = '<div class="muted">Composing the answer on this device…</div>';
+  const engine = await loadEngine(status);
+  status('Composing the answer on this device…');
   const reply = await engine.chat.completions.create({
     temperature: 0, max_tokens: 900,
     response_format: { type: 'json_object', schema: ANSWER_SCHEMA },
     extra_body: { enable_thinking: false },
     messages: [{ role: 'system', content: SYSTEM_PROMPT }, { role: 'user', content: `Passages:\n\n${context}\n\nQuestion: ${question}` }],
   });
-  return { content: reply.choices[0].message.content, label: `${state.engineModel.split('-q')[0]} in your browser` };
+  return { content: reply.choices[0].message.content, label: 'Qwen3 4B on this device' };
 }
 
-async function ask(question) {
-  const turn = document.createElement('article');
-  turn.className = 'panel turn';
-  turn.innerHTML = `<div class="turn-question"><div class="eyebrow">YOU</div><p>${esc(question)}</p></div><div class="turn-body"><div class="muted">Finding evidence…</div></div>`;
-  $('conversation').appendChild(turn);
-  turn.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  const body = turn.querySelector('.turn-body');
+async function ask(question, onDevice = false, body = null) {
+  if (!body) {
+    const turn = document.createElement('article');
+    turn.className = 'panel turn';
+    turn.innerHTML = `<div class="turn-question"><div class="eyebrow">YOU</div><p>${esc(question)}</p></div><div class="turn-body"></div>`;
+    $('conversation').appendChild(turn);
+    turn.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    body = turn.querySelector('.turn-body');
+  }
+  const status = (text) => { body.innerHTML = `<div class="muted">${esc(text)}</div>`; };
+  const abstain = (text) => { body.innerHTML = `<p class="abstain">${esc(text)}</p>`; };
+  status('Finding evidence across the archive…');
   const started = performance.now();
-  const filters = libraryFilters('c', 'c-review');
-  delete filters.material; delete filters.file_type;
-  const passages = await retrieve(question, filters);
-  if (!passages.length) {
-    body.innerHTML = '<p class="abstain">No archive passages matched this question. Try naming the concept directly, or widen the course and term filters.</p>';
+  const passages = await retrieve(question, { review: 'not_reviewed' });
+  if (!passages.length) return abstain('No archive passages matched this question. Try naming the concept directly, as the course materials would.');
+  const terms = keywords(question);
+  const local = onDevice || !state.config.copilot_endpoint;
+  let answer;
+  try {
+    if (local && !(await hasWebGPU())) {
+      return abstain('The answer service is unavailable and this browser can’t run the model itself (it has no WebGPU). Library search still works, or try again later.');
+    }
+    status(local ? 'Composing the answer on this device…' : 'Composing the answer…');
+    answer = local ? await composeInBrowser(question, passages, terms, status) : await composeHosted(question, passages, terms);
+  } catch (error) {
+    console.error(error);
+    if (!error.hosted) return abstain(`This device couldn’t run the model: ${error.message || error}.`);
+    body.innerHTML = `<p class="abstain">${esc(error.quota ? 'The answer service has reached today’s free limit.' : 'The answer service didn’t respond.')}
+      You can answer on this device instead. The first time, it downloads a 2.3 GB model that your browser keeps.</p>
+      <button type="button" class="quiet-button" data-local>Answer on this device →</button>`;
+    body.querySelector('[data-local]').addEventListener('click', () => ask(question, true, body));
     return;
   }
-  const terms = keywords(question);
-  body.innerHTML = `<div class="muted">${usingHosted() ? 'Composing the answer…' : 'Composing the answer on this device…'}</div>`;
-  const { content, label } = usingHosted() ? await composeHosted(question, passages, terms) : await composeInBrowser(question, passages, terms, body);
   let parsed;
   // Qwen3 may prefix an empty <think></think> block; parse the JSON object that follows it.
-  const raw = content.replace(/<think>[\s\S]*?<\/think>/g, '');
+  const raw = answer.content.replace(/<think>[\s\S]*?<\/think>/g, '');
   try { parsed = JSON.parse(raw.slice(raw.indexOf('{'), raw.lastIndexOf('}') + 1)); } catch { parsed = { insufficient: true, claims: [] }; }
-  // Keep only claims whose quotation appears verbatim in the cited passage.
-  const kept = []; let rejected = 0;
+  // Keep only claims whose quotation appears word for word in the cited passage.
+  // The same slide often appears in several files, so identical claims are merged with all their sources.
+  const kept = new Map(); let rejected = 0;
   for (const claim of parsed.claims || []) {
     const passage = passages[claim.source - 1];
-    if (passage && quoteSupported(passage.content, claim.quote || '')) kept.push({ ...claim, passage });
-    else rejected += 1;
+    if (!passage || !quoteSupported(passage.content, claim.quote || '')) { rejected += 1; continue; }
+    const key = words(claim.text).join(' ');
+    const entry = kept.get(key) || { text: claim.text, quote: claim.quote, sources: [] };
+    if (!entry.sources.includes(claim.source - 1)) entry.sources.push(claim.source - 1);
+    kept.set(key, entry);
   }
   const seconds = ((performance.now() - started) / 1000).toFixed(1);
   const evidence = `<details><summary>Retrieved evidence · ${passages.length} passages</summary>${passages.map((p, i) =>
     `<button type="button" class="cite" data-p="${i}">[${i + 1}] ${esc(p.meta.title)} · ${esc(p.meta.locator)}</button>`).join('')}</details>`;
-  const claims = kept.map((c) => `<div class="claim"><div>${esc(c.text)}</div>
-      <button type="button" class="cite" data-p="${c.source - 1}">${esc(c.passage.meta.title)} · ${esc(c.passage.meta.locator)}</button>
+  const claims = [...kept.values()].map((c) => `<div class="claim"><div>${esc(c.text)}</div>
+      ${c.sources.map((i) => `<button type="button" class="cite" data-p="${i}">${esc(passages[i].meta.title)} · ${esc(passages[i].meta.locator)}</button>`).join('')}
       <details><summary>Supporting quotation · checked against the source</summary><blockquote>${esc(c.quote)}</blockquote></details></div>`).join('');
-  body.innerHTML = `<div class="eyebrow">CITED ANSWER</div>${kept.length ? claims : '<p class="abstain">The retrieved passages don’t clearly answer this, so no answer is given. Open the evidence below, or rephrase with the exact term used in the course.</p>'}
-    ${evidence}<div class="meta-line">${esc(label)} · ${seconds} s · ${rejected} unsupported ${rejected === 1 ? 'claim' : 'claims'} removed</div>`;
+  body.innerHTML = `<div class="eyebrow">CITED ANSWER</div>${kept.size ? claims : '<p class="abstain">The retrieved passages don’t clearly answer this, so no answer is given. Open the evidence below, or rephrase with the exact term used in the course.</p>'}
+    ${evidence}<div class="meta-line">${esc(answer.label)} · ${seconds} s · ${rejected} unsupported ${rejected === 1 ? 'claim' : 'claims'} removed</div>`;
   body.querySelectorAll('.cite').forEach((button) => button.addEventListener('click', () => {
     showView('library'); showSource(passages[Number(button.dataset.p)], terms);
     $('reader-stage').scrollIntoView({ behavior: 'smooth' });
@@ -351,20 +351,10 @@ $('ask-form').addEventListener('submit', async (e) => {
   e.preventDefault();
   const question = $('ask').value.trim();
   if (!question || !state.pagefind) return;
-  if (!(await checkWebGPU())) return;
   $('ask-submit').disabled = true; $('ask').value = '';
-  try { await ask(question); } catch (error) {
-    console.error(error);
-    const last = $('conversation').lastElementChild?.querySelector('.turn-body');
-    const message = error.quota
-      ? 'The hosted Copilot has used today’s free allowance. Choose an in-browser model above to keep going (one-time download), or try again tomorrow.'
-      : error.hosted ? `${error.message} Try again in a moment, or choose an in-browser model above.`
-        : `The in-browser model could not answer: ${error.message || error}. If your device ran out of GPU memory, choose the lighter Qwen3 1.7B model.`;
-    if (last) last.innerHTML = `<p class="abstain">${esc(message)}</p>`;
-    $('model-progress').hidden = true;
-  } finally { $('ask-submit').disabled = false; }
+  try { await ask(question); } catch (error) { console.error(error); } finally { $('ask-submit').disabled = false; }
 });
-$('ask').addEventListener('keydown', (e) => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) $('ask-form').requestSubmit(); });
+$('ask').addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); $('ask-form').requestSubmit(); } });
 
 /* ---------- Data ---------- */
 function loadScript(src) {
