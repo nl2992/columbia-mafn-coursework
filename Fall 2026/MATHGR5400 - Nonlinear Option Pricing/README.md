@@ -11,7 +11,7 @@ Taught by Julien Guyon and Bryan Liang. The course covers the nonlinear PDEs tha
 
 - [`lectures/`](lectures/): `NonlinearOptionPricing_LectureNotes_Columbia_2026.pdf`
 - [`assignments/`](assignments/): Homework I notebook (`HW1-2026-Columbia.ipynb`) on conditional expectation via parametric and nonparametric regression, due 2 October 2026, 6:00 PM, submitted on CourseWorks after *Run all cells*
-- [`setup/`](setup/): Python environment instructions and the PyTorch and TensorFlow test notebooks
+- [`setup/`](setup/): Python and Jupyter setup instructions (converted from the CourseWorks HTML page) and the PyTorch and TensorFlow test notebooks
 
 ## Access note
 

@@ -199,6 +199,14 @@ No further design choice is needed to use Stages 4–7. The current choices are 
 - Added large-document result diversification so newly indexed textbooks do not crowd lecture evidence, while deferred hits still fill tightly scoped searches. Added bounded support-check retry and per-claim validation fallback for malformed local-model IDs.
 - The strengthened thresholds require zero missing-text sources and zero extraction errors. The final release gate passes 18/18; archive diagnostics hit 605/635 probes (95.3%) with zero locator/hash errors, and all 59 Python tests pass.
 
+### Fall 2026 intake — 2026-09-27
+
+- Added `Fall 2026/` with IEOR4735 Continuous Time Finance, MATHGR5400 Nonlinear Option Pricing, STATGR5263 Statistical Inference & Time Series Modeling, STATGR5293 Statistical Aspects of Finance, and MATHGR5521 Topics in Mathematical Finance. Personal submissions, TA grading records, and admin trackers were deliberately left out.
+- The refresh, import, rich-extraction and search stages now discover any `Fall|Spring|Summer|Winter YYYY` folder instead of a hardcoded term list. `.r` files use the source-code route. The MATHGR5400 HTML setup page was converted to Markdown.
+- Published generation `b8add12b6fb544ecb5ba0b06afdd2a54`: 30,116 chunks, 189,908 vectors, 671 canonical documents, and 677/677 represented source paths, with zero empty outcomes and zero extraction errors. All 62 Python tests pass.
+- Release gate: 14/16 curated retrieval cases hit at five, with zero citation errors. One regression is open: `levy-price-distribution` still returns the Mantegna–Stanley paper, but its expected page 3 dropped from rank 3 to rank 6 after the corpus grew. The known `broad-measure-change-paraphrase` challenge miss is unchanged. The gate does not pass until the regression is resolved or re-baselined.
+- README screenshots in `docs/images/demo-*.png` were captured from this generation. The Copilot failed until a stale Ollama process, whose Metal library compile was failing with `XPC_ERROR_CONNECTION_INVALID`, was restarted.
+
 ### Stage 8 completion — 2026-09-14
 
 - Added serialized refresh/retry jobs, durable progress, source-change records, extraction reuse, failed-build input recovery and consistent SQLite backups. The completed coverage refresh ends with zero extraction errors and zero empty outcomes.

@@ -25,6 +25,30 @@ Key features:
 
 Personal research lives in Git-ignored `.rag/library.sqlite`. Unlike the index, it cannot be rebuilt from the course files. Back it up; do not delete the whole `.rag/` directory to refresh search.
 
+### See it in action
+
+These screenshots come from a local run of the app against this archive, including the Fall 2026 courses. Everything runs on your Mac: search, the answer model, and calculations.
+
+**1. Search the library and open the exact page.** Type a concept, narrow it with the filters (here **Term → Fall 2026**), and pick a result. The reader opens the cited PDF page, slide, or cell range. Searching *change of numeraire* goes straight to page 271 of the IEOR4735 lecture notes, with the Björk slides and F8 lecture listed next.
+
+![Library search for "change of numeraire" filtered to Fall 2026, with the IEOR4735 lecture notes open at page 271](docs/images/demo-library-search.png)
+
+**2. Check the evidence.** **Evidence & details** shows the verified source path, a stable citation (`IEOR4735_LectureNotes_F1-F14.pdf · p. 271`), and the passage that matched. **Pin document** adds the file to a Copilot question's scope, and **Save passage** keeps the passage in **Saved**.
+
+![Evidence and details drawer showing the source path, citation chip, and matched passage](docs/images/demo-evidence.png)
+
+**3. Ask the Copilot.** Open **Copilot**, optionally set a course filter, and ask in plain English. The local Qwen3 4B model answers only from retrieved passages. Each claim links to its source and carries a supporting quotation that was checked against that source. Asked how Homework I approximates *E[Y|X]*, it answers from cell 6 of the MATHGR5400 notebook. If the evidence is too weak, it declines to answer.
+
+![Copilot answering a question about conditional expectation and regression with citations to HW1-2026-Columbia.ipynb cell 6](docs/images/demo-copilot.png)
+
+**4. Calculate from the original cells.** In **Data**, choose a workbook or dataset, give it an explicit range, and run an operation. Here, the mean of NSW supermarket sales in `retail.xlsx` for STATGR5263 HW1. The result carries its source range, the matching rows, and a recipe you can replay, and you can save or export it.
+
+![Data workspace computing the mean of column B in retail.xlsx with the source cells listed below](docs/images/demo-data.png)
+
+**5. Confirm what is indexed.** **Coverage** shows the index size and any files without searchable text, along with each refresh job and its result. **Add docs** imports new files and publishes them to GitHub (see below).
+
+![Coverage view: 30,116 chunks, 671 documents, 677 source paths, 0 paths without text, 4 terms](docs/images/demo-coverage.png)
+
 ### One-click setup and launch on macOS
 
 On a new Mac with Homebrew installed, clone the repository and double-click **`Course Archive.app`** (or **`START HERE - Open Course Archive.command`**). When the local index is absent, the launcher opens **`SET UP THIS MAC.command`** in Terminal automatically. It installs the pinned local runtime and document tools, downloads and verifies both local models, builds the private index, installs the Desktop app, and opens it. See the **[illustrated setup guide](docs/SETUP.md)** for prerequisites, screenshots, GitHub access, document publishing, and troubleshooting.
@@ -88,7 +112,7 @@ python3 scripts/run_rag.py --open
 
 For a fresh machine, run [`SET UP THIS MAC.command`](SET%20UP%20THIS%20MAC.command), which provisions the pinned dependencies and both local models before building the index. The full API, runtime, rebuild, OCR, test, evaluation, coverage, and locator instructions are in [rag/README.md](rag/README.md); the implementation plan is in [plan.md](plan.md) and the living delivery record is in [status.md](status.md).
 
-The accepted local generation represents all 635 course/program-wide source paths: 629 canonical documents, 28,056 searchable chunks, 186,176 semantic windows, zero empty extraction outcomes, and zero extraction errors. The release gate requires those zero-gap counts and passes all 18 checks.
+With Fall 2026 added, the local generation covers all 677 course and program-wide source paths: 671 canonical documents, 30,116 searchable chunks, and 189,908 semantic windows, with zero empty extraction outcomes and zero extraction errors. The release gate requires those zero-gap counts. On this generation, one curated retrieval case, `levy-price-distribution`, returns the expected paper at the wrong page (page 3 now ranks sixth) and is flagged as a regression. See [status.md](status.md) before relying on the gate result.
 
 Stage 7 (after the baseline ingestion; Tesseract and the ingestion libraries must be installed):
 

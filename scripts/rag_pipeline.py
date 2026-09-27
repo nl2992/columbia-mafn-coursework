@@ -72,6 +72,7 @@ SUPPORTED_ROUTES = {
     ".py": "source_code",
     ".c": "source_code",
     ".m": "source_code",
+    ".r": "source_code",
     ".tex": "source_code",
     ".txt": "text",
     ".md": "markdown",
