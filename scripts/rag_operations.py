@@ -13,9 +13,6 @@ import uuid
 
 import rag_pipeline as pipeline
 
-ROOTS = ('Fall 2025', 'Spring 2026', 'Program-wide')
-
-
 def atomic(path, value):
     path.parent.mkdir(parents=True, exist_ok=True)
     pending = path.with_suffix('.pending')
@@ -25,7 +22,7 @@ def atomic(path, value):
 
 def snapshot(root):
     result = {}
-    for name in ROOTS:
+    for name in pipeline.source_roots(root):
         for path in sorted((root/name).rglob('*')):
             if path.is_file() and not pipeline.is_ignored(path.relative_to(root)):
                 if path.is_symlink() or not path.resolve().is_relative_to(root.resolve()):
@@ -104,7 +101,7 @@ def refresh(root, retry=False, ocr=False, builder=None):
         published = False
         try:
             before = {r['source_path']: r['content_hash'] for r in pipeline.jsonl_read(rag/'manifest.jsonl')
-                      if Path(r['source_path']).parts[0] in ROOTS}
+                      if pipeline.is_source_root(Path(r['source_path']).parts[0])}
             after = snapshot(root)
             job['changes'] = changes(before, after)
             job['backup'] = backup(root, folder/'backups'/f'{job_id}.sqlite')
@@ -209,7 +206,7 @@ def main():
             print(path.read_text())
     else:
         before = {r['source_path']:r['content_hash'] for r in pipeline.jsonl_read(root/'.rag/manifest.jsonl')
-                  if Path(r['source_path']).parts[0] in ROOTS}
+                  if pipeline.is_source_root(Path(r['source_path']).parts[0])}
         print(json.dumps(changes(before, snapshot(root)), indent=2))
 
 

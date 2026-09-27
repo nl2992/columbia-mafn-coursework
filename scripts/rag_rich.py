@@ -163,7 +163,7 @@ def enrich():
     for record in pipeline.jsonl_read(pipeline.RAG_DIR/'manifest.jsonl'):
         if record.get('duplicate_of') or record['route'] not in ('image', 'archive'):
             continue
-        if Path(record['source_path']).parts[0] not in ('Fall 2025', 'Spring 2026', 'Program-wide'):
+        if not pipeline.is_source_root(Path(record['source_path']).parts[0]):
             continue
         path = pipeline.ROOT/record['source_path']
         if pipeline.sha256_file(path) != record['content_hash']:

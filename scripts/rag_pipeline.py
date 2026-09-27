@@ -137,13 +137,25 @@ def is_ignored(path: Path) -> bool:
     return any(part in IGNORED_DIRS for part in path.parts)
 
 
+TERM_PATTERN = re.compile(r"(?:Fall|Spring|Summer|Winter) \d{4}")
+PROGRAM_ROOT = "Program-wide"
+
+
+def is_source_root(name: str) -> bool:
+    return name == PROGRAM_ROOT or TERM_PATTERN.fullmatch(name) is not None
+
+
+def source_roots(root: Path = ROOT) -> list[str]:
+    return sorted(path.name for path in root.iterdir() if path.is_dir() and is_source_root(path.name))
+
+
 def infer_context(rel: str) -> dict[str, Any]:
     parts = Path(rel).parts
-    term = parts[0] if parts and re.fullmatch(r"(?:Fall|Spring|Summer|Winter) \d{4}", parts[0]) else None
+    term = parts[0] if parts and TERM_PATTERN.fullmatch(parts[0]) else None
     if term:
         course = parts[1] if len(parts) > 1 else None
         context_start = 2
-    elif parts and parts[0] == "Program-wide":
+    elif parts and parts[0] == PROGRAM_ROOT:
         course = None
         context_start = 1
     else:

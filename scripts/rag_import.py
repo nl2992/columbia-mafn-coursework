@@ -16,7 +16,6 @@ import uuid
 
 import rag_pipeline as pipeline
 
-ROOTS = ('Fall 2025', 'Spring 2026', 'Program-wide')
 MAX_FILES = 20
 MAX_FILE_BYTES = 64 * 1024 * 1024
 MAX_BATCH_BYTES = 128 * 1024 * 1024
@@ -59,7 +58,7 @@ class ImportService:
 
     def folders(self):
         rows = []
-        for root_name in ROOTS:
+        for root_name in pipeline.source_roots(self.root):
             source_root = (self.root / root_name).resolve()
             if not source_root.is_dir() or not source_root.is_relative_to(self.root):
                 continue

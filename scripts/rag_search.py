@@ -31,7 +31,7 @@ import numpy as np
 
 ROOT = Path(__file__).resolve().parents[1]
 SCHEMA_VERSION = 1
-ALLOWED_ROOTS = {'Fall 2025', 'Spring 2026', 'Program-wide'}
+SOURCE_ROOT = re.compile(r'(?:Fall|Spring|Summer|Winter) \d{4}|Program-wide')
 STOPWORDS = set('a an the and or of in on at to for from with as is are was were be been '
                 'this that these those how what which when where why does do did can could '
                 'would should i me my you your please explain describe show find give about'.split())
@@ -144,7 +144,7 @@ def build(root=ROOT, model_dir=None, batch_size=32, threads=4):
         source_fingerprints = {p.name: digest_file(p) for p in (manifest_path, chunks_path)}
         model = MiniLM(model_dir, threads)
         manifest = list(load_jsonl(manifest_path))
-        sources = [source_metadata(m) for m in manifest if Path(m['source_path']).parts[0] in ALLOWED_ROOTS]
+        sources = [source_metadata(m) for m in manifest if SOURCE_ROOT.fullmatch(Path(m['source_path']).parts[0])]
         groups = defaultdict(list)
         for source in sources:
             groups[source['document_id']].append(source)

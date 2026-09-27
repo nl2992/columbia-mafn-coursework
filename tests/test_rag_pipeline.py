@@ -24,6 +24,17 @@ def manifest(route, suffix=".pdf"):
     }
 
 
+class SourceRootTests(unittest.TestCase):
+    def test_new_term_folders_are_discovered_without_code_changes(self):
+        with tempfile.TemporaryDirectory() as name:
+            root = Path(name)
+            for folder in ("Fall 2025", "Spring 2026", "Fall 2026", "Program-wide", "docs", "scripts"):
+                (root / folder).mkdir()
+            (root / "Fall 2027").write_text("not a folder")
+            self.assertEqual(pipeline.source_roots(root), ["Fall 2025", "Fall 2026", "Program-wide", "Spring 2026"])
+            self.assertEqual(pipeline.infer_context("Fall 2026/Course/lectures/a.pdf")["term"], "Fall 2026")
+
+
 class PipelineExtractionTests(unittest.TestCase):
     def test_image_only_pdf_ocr_is_parallel_but_records_stay_ordered(self):
         with tempfile.TemporaryDirectory() as name:
