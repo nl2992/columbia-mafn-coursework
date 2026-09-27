@@ -6,7 +6,7 @@
 const SYSTEM_PROMPT =
   'You answer questions about Columbia MAFN course materials using only the numbered passages provided. ' +
   'Return JSON. Each claim must be one sentence supported by a single passage. "source" is that passage number, ' +
-  'and "quote" is copied word for word from that passage (at least five words) to prove the claim. Use at most five claims. ' +
+  'and "quote" is copied word for word from that passage (at least five words) to prove the claim. Each claim must be a statement that answers the question, never a restatement of the question or another question. Use at most five claims. ' +
   'If the passages do not answer the question, set "insufficient" to true and return no claims. Never use outside knowledge.';
 
 const ANSWER_SCHEMA = {

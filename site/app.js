@@ -249,7 +249,7 @@ function quoteSupported(passage, quote) {
 
 const SYSTEM_PROMPT = 'You answer questions about Columbia MAFN course materials using only the numbered passages provided. ' +
   'Return JSON. Each claim must be one sentence supported by a single passage. "source" is that passage number, and "quote" is copied word for word from that passage (at least five words) to prove the claim. ' +
-  'Use at most five claims. If the passages do not answer the question, set "insufficient" to true and return no claims. Never use outside knowledge.';
+  'Each claim must be a statement that answers the question, never a restatement of the question or another question. Use at most five claims. If the passages do not answer the question, set "insufficient" to true and return no claims. Never use outside knowledge.';
 const ANSWER_SCHEMA = JSON.stringify({
   type: 'object',
   properties: {
@@ -328,7 +328,8 @@ async function ask(question, onDevice = false, body = null) {
   const kept = new Map(); let rejected = 0;
   for (const claim of parsed.claims || []) {
     const passage = passages[claim.source - 1];
-    if (!passage || !quoteSupported(passage.content, claim.quote || '')) { rejected += 1; continue; }
+    const restates = words(claim.text).join(' ') === words(question).join(' ') || String(claim.text || '').trim().endsWith('?');
+    if (!passage || restates || !quoteSupported(passage.content, claim.quote || '')) { rejected += 1; continue; }
     const key = words(claim.text).join(' ');
     const entry = kept.get(key) || { text: claim.text, quote: claim.quote, sources: [] };
     if (!entry.sources.includes(claim.source - 1)) entry.sources.push(claim.source - 1);
