@@ -8,7 +8,7 @@ const STOPWORDS = new Set(('a an the and or of in on at to for from with as is a
   'using use used between vs versus there their them they we our us than then so if not no yes any all some such').split(' '));
 
 const $ = (id) => document.getElementById(id);
-const state = { pagefind: null, stats: null, results: [], shown: 0, selected: null, engine: null, engineModel: null,
+const state = { config: {}, pagefind: null, stats: null, results: [], shown: 0, selected: null, engine: null, engineModel: null,
   workbook: null, dataset: null, datasets: [], lastData: null };
 
 function esc(text) {
@@ -82,7 +82,14 @@ function syncUrl() {
 /* ---------- Library ---------- */
 async function initLibrary() {
   try {
-    const [pagefind, stats] = await Promise.all([import('./pagefind/pagefind.js'), fetch('data/stats.json').then((r) => r.json())]);
+    const [pagefind, stats, config] = await Promise.all([import('./pagefind/pagefind.js'), fetch('data/stats.json').then((r) => r.json()),
+      fetch('config.json').then((r) => (r.ok ? r.json() : {})).catch(() => ({}))]);
+    state.config = config;
+    if (config.copilot_endpoint) {
+      $('model').add(new Option('Hosted Qwen3 30B · no download', HOSTED), 0);
+      $('model').value = HOSTED;
+    }
+    updateModelStatus();
     await pagefind.options({ excerptLength: 34 });
     await pagefind.init();
     state.pagefind = pagefind; state.stats = stats;
@@ -183,15 +190,26 @@ function showSource(item, terms = []) {
 }
 
 /* ---------- Copilot ---------- */
+const HOSTED = 'hosted';
+const usingHosted = () => $('model').value === HOSTED;
+function updateModelStatus() {
+  $('model-status').textContent = usingHosted()
+    ? 'Nothing to download: Qwen3 30B answers on Cloudflare. Your question and the retrieved passages are sent to it and not stored.'
+    : 'Runs on your device: the model downloads once on first use and is cached by your browser. Nothing you ask leaves your browser.';
+}
 async function checkWebGPU() {
   const notice = $('webgpu-notice');
+  if (usingHosted()) { notice.hidden = true; $('ask-submit').disabled = false; return true; }
   let ok = 'gpu' in navigator;
   if (ok) { try { ok = Boolean(await navigator.gpu.requestAdapter()); } catch { ok = false; } }
   notice.hidden = ok;
-  if (!ok) notice.textContent = 'This browser has no WebGPU, so the Copilot cannot run here. Use a current version of Chrome, Edge, or Safari on a computer. Library search and Data still work.';
+  if (!ok) notice.textContent = state.config.copilot_endpoint
+    ? 'This browser has no WebGPU, so in-browser models can’t run here. Choose the hosted model, which needs no download.'
+    : 'This browser has no WebGPU, so the Copilot cannot run here. Use a current version of Chrome, Edge, or Safari on a computer. Library search and Data still work.';
   $('ask-submit').disabled = !ok;
   return ok;
 }
+$('model').addEventListener('change', () => { updateModelStatus(); checkWebGPU(); });
 async function loadEngine() {
   const model = $('model').value;
   if (state.engine && state.engineModel === model) return state.engine;
@@ -241,8 +259,21 @@ function passageWindow(text, terms, size = 1300) {
   const at = Math.max(0, Math.min(...terms.map((t) => lower.indexOf(t)).filter((i) => i >= 0), text.length) - 250);
   return text.slice(at, at + size);
 }
-const normalize = (s) => String(s).normalize('NFKC').toLowerCase().replace(/[‘’]/g, "'").replace(/[“”]/g, '"').replace(/[‐-―−]/g, '-').replace(/\s+/g, ' ').trim();
+// Quotations are compared as word sequences, ignoring punctuation, HTML tags and LaTeX markup, so a quote of
+// rendered math ("E[Y|X]") still matches its source ("$\mathbb{E}\left[Y|X\right]$"). Words must match in order.
+const GREEK = { alpha: 'α', beta: 'β', gamma: 'γ', delta: 'δ', epsilon: 'ε', varepsilon: 'ε', theta: 'θ', lambda: 'λ', mu: 'μ',
+  nu: 'ν', pi: 'π', rho: 'ρ', sigma: 'σ', tau: 'τ', phi: 'φ', varphi: 'φ', chi: 'χ', psi: 'ψ', omega: 'ω', xi: 'ξ', eta: 'η',
+  kappa: 'κ', zeta: 'ζ', Gamma: 'Γ', Delta: 'Δ', Theta: 'Θ', Lambda: 'Λ', Sigma: 'Σ', Phi: 'Φ', Psi: 'Ψ', Omega: 'Ω' };
+const words = (s) => String(s).normalize('NFKC').replace(/<[^>]*>/g, ' ').replace(/\\([A-Za-z]+)/g, (_, name) => ` ${GREEK[name] ?? ''} `)
+  .toLowerCase().match(/[\p{L}\p{N}]+/gu) || [];
+function quoteSupported(passage, quote) {
+  const q = words(quote);
+  return q.length >= 5 && ` ${words(passage).join(' ')} `.includes(` ${q.join(' ')} `);
+}
 
+const SYSTEM_PROMPT = 'You answer questions about Columbia MAFN course materials using only the numbered passages provided. ' +
+  'Return JSON. Each claim must be one sentence supported by a single passage. "source" is that passage number, and "quote" is copied word for word from that passage (at least five words) to prove the claim. ' +
+  'Use at most five claims. If the passages do not answer the question, set "insufficient" to true and return no claims. Never use outside knowledge.';
 const ANSWER_SCHEMA = JSON.stringify({
   type: 'object',
   properties: {
@@ -251,6 +282,28 @@ const ANSWER_SCHEMA = JSON.stringify({
   },
   required: ['insufficient', 'claims'],
 });
+
+async function composeHosted(question, passages, terms) {
+  const response = await fetch(`${state.config.copilot_endpoint}/answer`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ question, passages: passages.map((p) => ({ title: p.meta.title, locator: p.meta.locator, text: passageWindow(p.content, terms) })) }),
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw Object.assign(new Error(data.error || `The hosted Copilot returned ${response.status}`), { hosted: true, quota: Boolean(data.quota) });
+  return { content: data.content, label: 'Qwen3 30B on Cloudflare' };
+}
+async function composeInBrowser(question, passages, terms, body) {
+  const context = passages.map((p, i) => `[${i + 1}] ${p.meta.title} (${p.meta.locator})\n${passageWindow(p.content, terms)}`).join('\n\n');
+  const engine = await loadEngine();
+  body.innerHTML = '<div class="muted">Composing the answer on this device…</div>';
+  const reply = await engine.chat.completions.create({
+    temperature: 0, max_tokens: 900,
+    response_format: { type: 'json_object', schema: ANSWER_SCHEMA },
+    extra_body: { enable_thinking: false },
+    messages: [{ role: 'system', content: SYSTEM_PROMPT }, { role: 'user', content: `Passages:\n\n${context}\n\nQuestion: ${question}` }],
+  });
+  return { content: reply.choices[0].message.content, label: `${state.engineModel.split('-q')[0]} in your browser` };
+}
 
 async function ask(question) {
   const turn = document.createElement('article');
@@ -267,32 +320,18 @@ async function ask(question) {
     body.innerHTML = '<p class="abstain">No archive passages matched this question. Try naming the concept directly, or widen the course and term filters.</p>';
     return;
   }
-  body.innerHTML = '<div class="muted">Composing the answer on this device…</div>';
   const terms = keywords(question);
-  const context = passages.map((p, i) => `[${i + 1}] ${p.meta.title} (${p.meta.locator})\n${passageWindow(p.content, terms)}`).join('\n\n');
-  const engine = await loadEngine();
-  body.innerHTML = '<div class="muted">Composing the answer on this device…</div>';
-  const reply = await engine.chat.completions.create({
-    temperature: 0, max_tokens: 900,
-    response_format: { type: 'json_object', schema: ANSWER_SCHEMA },
-    extra_body: { enable_thinking: false },
-    messages: [
-      { role: 'system', content: 'You answer questions about Columbia MAFN course materials using only the numbered passages provided. ' +
-        'Return JSON. Each claim must be one sentence supported by a single passage. "source" is that passage number, and "quote" is copied word for word from that passage (at least five words) to prove the claim. ' +
-        'Use at most five claims. If the passages do not answer the question, set "insufficient" to true and return no claims. Never use outside knowledge.' },
-      { role: 'user', content: `Passages:\n\n${context}\n\nQuestion: ${question}` },
-    ],
-  });
+  body.innerHTML = `<div class="muted">${usingHosted() ? 'Composing the answer…' : 'Composing the answer on this device…'}</div>`;
+  const { content, label } = usingHosted() ? await composeHosted(question, passages, terms) : await composeInBrowser(question, passages, terms, body);
   let parsed;
   // Qwen3 may prefix an empty <think></think> block; parse the JSON object that follows it.
-  const raw = reply.choices[0].message.content.replace(/<think>[\s\S]*?<\/think>/g, '');
+  const raw = content.replace(/<think>[\s\S]*?<\/think>/g, '');
   try { parsed = JSON.parse(raw.slice(raw.indexOf('{'), raw.lastIndexOf('}') + 1)); } catch { parsed = { insufficient: true, claims: [] }; }
   // Keep only claims whose quotation appears verbatim in the cited passage.
   const kept = []; let rejected = 0;
   for (const claim of parsed.claims || []) {
     const passage = passages[claim.source - 1];
-    const quote = normalize(claim.quote || '');
-    if (passage && quote.split(' ').length >= 4 && normalize(passage.content).includes(quote)) kept.push({ ...claim, passage });
+    if (passage && quoteSupported(passage.content, claim.quote || '')) kept.push({ ...claim, passage });
     else rejected += 1;
   }
   const seconds = ((performance.now() - started) / 1000).toFixed(1);
@@ -302,7 +341,7 @@ async function ask(question) {
       <button type="button" class="cite" data-p="${c.source - 1}">${esc(c.passage.meta.title)} · ${esc(c.passage.meta.locator)}</button>
       <details><summary>Supporting quotation · checked against the source</summary><blockquote>${esc(c.quote)}</blockquote></details></div>`).join('');
   body.innerHTML = `<div class="eyebrow">CITED ANSWER</div>${kept.length ? claims : '<p class="abstain">The retrieved passages don’t clearly answer this, so no answer is given. Open the evidence below, or rephrase with the exact term used in the course.</p>'}
-    ${evidence}<div class="meta-line">${esc(state.engineModel.split('-q')[0])} in your browser · ${seconds} s · ${rejected} unsupported ${rejected === 1 ? 'claim' : 'claims'} removed</div>`;
+    ${evidence}<div class="meta-line">${esc(label)} · ${seconds} s · ${rejected} unsupported ${rejected === 1 ? 'claim' : 'claims'} removed</div>`;
   body.querySelectorAll('.cite').forEach((button) => button.addEventListener('click', () => {
     showView('library'); showSource(passages[Number(button.dataset.p)], terms);
     $('reader-stage').scrollIntoView({ behavior: 'smooth' });
@@ -317,7 +356,11 @@ $('ask-form').addEventListener('submit', async (e) => {
   try { await ask(question); } catch (error) {
     console.error(error);
     const last = $('conversation').lastElementChild?.querySelector('.turn-body');
-    if (last) last.innerHTML = `<p class="abstain">The in-browser model could not answer: ${esc(error.message || error)}. If your device ran out of GPU memory, choose the lighter Qwen3 1.7B model.</p>`;
+    const message = error.quota
+      ? 'The hosted Copilot has used today’s free allowance. Choose an in-browser model above to keep going (one-time download), or try again tomorrow.'
+      : error.hosted ? `${error.message} Try again in a moment, or choose an in-browser model above.`
+        : `The in-browser model could not answer: ${error.message || error}. If your device ran out of GPU memory, choose the lighter Qwen3 1.7B model.`;
+    if (last) last.innerHTML = `<p class="abstain">${esc(message)}</p>`;
     $('model-progress').hidden = true;
   } finally { $('ask-submit').disabled = false; }
 });

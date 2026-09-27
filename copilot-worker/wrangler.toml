@@ -1,0 +1,26 @@
+# Cloudflare Worker that answers Copilot questions for the GitHub Pages site using Workers AI,
+# so visitors don't download a model. Deploy with: npx wrangler deploy (from this directory).
+name = "mafn-archive-copilot"
+main = "src/index.js"
+compatibility_date = "2026-09-01"
+workers_dev = true
+
+[ai]
+binding = "AI"
+
+[vars]
+# Browser origins allowed to call the Worker (comma-separated).
+ALLOWED_ORIGINS = "https://nl2992.github.io,http://127.0.0.1:8790,http://localhost:8790"
+MODEL = "@cf/qwen/qwen3-30b-a3b-fp8"
+
+# Per-visitor limit: at most 6 questions a minute from one IP address.
+[[ratelimits]]
+name = "PER_VISITOR"
+namespace_id = "4735"
+
+  [ratelimits.simple]
+  limit = 6
+  period = 60
+
+[observability]
+enabled = false

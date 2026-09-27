@@ -62,13 +62,13 @@
     <!-- Copilot -->
     <section class="view" id="view-copilot" hidden aria-labelledby="copilot-title">
       <div class="topbar">
-        <div><div class="eyebrow">RESEARCH CONVERSATION</div><h1 id="copilot-title">Ask the course archive</h1><p class="page-description">Answers come only from archive passages, and every quotation is checked against its source. The model runs on your device; nothing you ask leaves your browser.</p></div>
+        <div><div class="eyebrow">RESEARCH CONVERSATION</div><h1 id="copilot-title">Ask the course archive</h1><p class="page-description">Answers come only from archive passages, and every quotation is checked against its source before it is shown.</p></div>
       </div>
       <div class="notice" id="webgpu-notice" hidden></div>
       <div class="panel copilot-settings">
         <label>Answer model<select id="model">
-          <option value="Qwen3-4B-q4f16_1-MLC">Qwen3 4B · best answers · 2.3 GB download</option>
-          <option value="Qwen3-1.7B-q4f16_1-MLC">Qwen3 1.7B · lighter · 1.1 GB download</option>
+          <option value="Qwen3-4B-q4f16_1-MLC">In-browser Qwen3 4B · 2.3 GB download</option>
+          <option value="Qwen3-1.7B-q4f16_1-MLC">In-browser Qwen3 1.7B · 1.1 GB download</option>
         </select></label>
         <label>Course<select id="c-course"><option value="">All courses</option></select></label>
         <label>Term<select id="c-term"><option value="">All terms</option></select></label>
@@ -78,8 +78,8 @@
       <form class="panel ask-form" id="ask-form">
         <textarea id="ask" rows="3" placeholder="Ask about a concept, e.g. “What is the general change of numeraire?”" aria-label="Ask the course archive"></textarea>
         <div class="ask-row">
-          <div class="muted small" id="model-status">The model downloads once on first use and is cached by your browser.</div>
-          <button class="primary-button" id="ask-submit" type="submit">Ask in browser →</button>
+          <div class="muted small" id="model-status"></div>
+          <button class="primary-button" id="ask-submit" type="submit">Ask →</button>
         </div>
         <div class="progress" id="model-progress" hidden><div class="progress-bar" id="model-progress-bar"></div></div>
       </form>
@@ -132,14 +132,14 @@
         <h2>How it works</h2>
         <ul>
           <li><strong>Library</strong> searches a prebuilt index of every extracted page, slide, cell range and code block. Search runs in your browser, loading only the index pieces a query needs.</li>
-          <li><strong>Copilot</strong> retrieves passages from that index and asks Qwen3, which runs on your GPU through WebLLM, to answer from them alone. A claim is kept only if its quotation appears word for word in the cited passage. If nothing survives, it declines to answer.</li>
+          <li><strong>Copilot</strong> retrieves passages from that index and asks Qwen3 to answer from them alone. By default, Qwen3 30B answers on Cloudflare Workers AI, so there's nothing to download: your question and the retrieved passages are sent to it and not stored. You can instead run Qwen3 4B or 1.7B on your own GPU through WebLLM, which needs a one-time download and keeps everything in your browser. Either way, a claim is kept only if its quotation appears word for word in the cited passage. If nothing survives, it declines to answer.</li>
           <li><strong>Data</strong> opens the original workbook with SheetJS and runs the operation you choose on the exact range you give.</li>
         </ul>
         <h2>Differences from the Mac app</h2>
         <ul>
           <li>Search is keyword-based. The Mac app also uses MiniLM semantic similarity, so it finds more paraphrases.</li>
-          <li>The Copilot needs a browser with WebGPU (current Chrome, Edge, or Safari) and a one-time model download.</li>
-          <li>Conversations and saved passages aren't stored. Nothing you search, ask, or compute leaves your browser.</li>
+          <li>The hosted Copilot has a free daily allowance of about 300 questions. After that, switch to an in-browser model, which needs WebGPU (current Chrome, Edge, or Safari).</li>
+          <li>Conversations and saved passages aren't stored. Search and Data never leave your browser.</li>
           <li>ZIP archives and a few very large files open from GitHub instead of from this site.</li>
         </ul>
         <p>For semantic search, saved research, and adding documents, run the full app on a Mac or in <a href="https://github.com/nl2992/columbia-mafn-coursework/blob/main/docs/CODESPACES.md">GitHub Codespaces</a>.</p>

@@ -50,3 +50,7 @@ scratch/
 
 # Static GitHub Pages build output
 _site/
+
+# Wrangler local state
+copilot-worker/.wrangler/
+copilot-worker/node_modules/

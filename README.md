@@ -7,10 +7,10 @@ Organized course and program materials for the Columbia MAFN coursework archive.
 The hosted site needs no install or sign-in, and everything runs in your browser:
 
 - **Library:** search every extracted page, slide, cell range and code block, then open the PDF at the cited page.
-- **Copilot:** ask questions and get answers with quotations checked against their sources. The Qwen3 model runs on your own GPU through WebGPU, so it needs current Chrome, Edge or Safari, plus a one-time 1.1–2.3 GB model download.
+- **Copilot:** ask questions and get answers in seconds, with every quotation checked against its source. Nothing to download: Qwen3 30B answers on Cloudflare Workers AI ([`copilot-worker/`](copilot-worker/)). You can instead choose an in-browser model that runs on your own GPU after a one-time download.
 - **Data:** calculate from the original workbook cells.
 
-Nothing you search or ask leaves your browser. The site's search is keyword-based. For semantic search, saved research, and adding documents, run the full app on a Mac. With no Mac, [open it in GitHub Codespaces](https://codespaces.new/nl2992/columbia-mafn-coursework?quickstart=1), which takes about 10–15 minutes to set up the first time ([details](docs/CODESPACES.md)).
+Search and Data never leave your browser. The hosted Copilot receives only your question and the retrieved passages, and stores nothing. The site's search is keyword-based. For semantic search, saved research, and adding documents, run the full app on a Mac. With no Mac, [open it in GitHub Codespaces](https://codespaces.new/nl2992/columbia-mafn-coursework?quickstart=1), which takes about 10–15 minutes to set up the first time ([details](docs/CODESPACES.md)).
 
 **Full app on a Mac:** [step-by-step Mac setup with screenshots — clone, Download ZIP, pull updates, and launch →](docs/SETUP.md)
 
