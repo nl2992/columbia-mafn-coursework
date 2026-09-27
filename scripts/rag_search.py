@@ -32,6 +32,26 @@ import numpy as np
 ROOT = Path(__file__).resolve().parents[1]
 SCHEMA_VERSION = 1
 SOURCE_ROOT = re.compile(r'(?:Fall|Spring|Summer|Winter) \d{4}|Program-wide')
+
+
+def codespace_host_pattern():
+    # GitHub Codespaces forwards the port as https://<codespace>-<port>.<domain>; accept only this codespace.
+    name = os.environ.get('CODESPACE_NAME')
+    domain = os.environ.get('GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN')
+    return re.compile(re.escape(name) + r'-\d+\.' + re.escape(domain)) if name and domain else None
+
+
+CODESPACE_HOST = codespace_host_pattern()
+
+
+def same_origin_request(headers):
+    host_header = headers.get('Host', '')
+    host, origin = host_header.split(':')[0], headers.get('Origin')
+    if host in ('localhost', '127.0.0.1'):
+        return origin in (None, f'http://{host_header}')
+    if CODESPACE_HOST and CODESPACE_HOST.fullmatch(host_header):
+        return origin in (None, f'https://{host_header}')
+    return False
 STOPWORDS = set('a an the and or of in on at to for from with as is are was were be been '
                 'this that these those how what which when where why does do did can could '
                 'would should i me my you your please explain describe show find give about'.split())
@@ -647,8 +667,7 @@ def handler_for(index):
         def post_dispatch(self):
             self.connection.settimeout(120)
             try:
-                host=self.headers.get('Host','').split(':')[0]
-                if host not in ('localhost','127.0.0.1') or self.headers.get('Origin') not in (None,f'http://{self.headers.get("Host")}'):
+                if not same_origin_request(self.headers):
                     self.reply(403,{'error':'Local same-origin requests only'});return
                 path = urlparse(self.path).path
                 if path not in ('/api/ask', '/api/library/items', '/api/library/delete', '/api/data/query', '/api/import'):
@@ -698,11 +717,8 @@ def handler_for(index):
 
         def dispatch(self, head=False):
             try:
-                host=self.headers.get('Host','').split(':')[0]
-                if host not in ('localhost','127.0.0.1'):
-                    self.reply(403,{'error':'Local requests only'});return
-                if self.headers.get('Origin') not in (None,f'http://{self.headers.get("Host")}'):
-                    self.reply(403,{'error':'Cross-origin access disabled'});return
+                if not same_origin_request(self.headers):
+                    self.reply(403,{'error':'Local same-origin requests only'});return
                 parsed=urlparse(self.path);params=parse_qs(parsed.query)
                 one=lambda k,d=None:params.get(k,[d])[0]
                 if parsed.path in self.STATIC_FILES:
@@ -723,7 +739,9 @@ def handler_for(index):
                           'chunks':index.report['chunk_count'],'vectors':len(index.vectors),
                           'documents':index.report['documents_with_chunks'],
                           'source_paths':index.report['source_path_count'],
-                          'source_paths_without_chunks':len(index.report['sources_without_chunks'])}
+                          'source_paths_without_chunks':len(index.report['sources_without_chunks']),
+                          'host':'codespace' if CODESPACE_HOST else 'mac',
+                          'answer_timeout_ms':int(os.environ.get('RAG_ANSWER_TIMEOUT_MS','210000'))}
                 elif parsed.path=='/api/filters':
                     data=index.filters()
                 elif parsed.path=='/api/data':

@@ -190,7 +190,8 @@
       state.filters = filters;
       refs.statusDot.classList.add('is-ready');
       refs.indexStatus.textContent = 'Library ready';
-      refs.indexDetail.textContent = `${health.documents.toLocaleString()} documents · on this Mac`;
+      refs.indexDetail.textContent = `${health.documents.toLocaleString()} documents · ${health.host === 'codespace' ? 'in this Codespace' : 'on this Mac'}`;
+      state.answerTimeoutMs = health.answer_timeout_ms || 210000;
       Object.entries(filterIds).forEach(([field, id]) => {
         populateSelect(id, filters[field], emptyFilterLabels[field]);
         $(id).value = state.filterValues[field] || '';
@@ -341,7 +342,7 @@
     refs.copilotStatus.textContent = 'Finding evidence, composing the answer, and checking its citations…';
     renderConversation();
     const timer = setTimeout(() => { if (epoch === state.askEpoch) refs.copilotStatus.textContent = 'Still working locally. The first answer may take longer while the model loads.'; }, 12000);
-    const timeout = setTimeout(() => { if (epoch === state.askEpoch) state.askController?.abort(); }, 210000);
+    const timeout = setTimeout(() => { if (epoch === state.askEpoch) state.askController?.abort(); }, state.answerTimeoutMs || 210000);
     try {
       await personal.flush();
       personal.setAwaiting(true);

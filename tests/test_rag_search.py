@@ -10,11 +10,13 @@ import subprocess
 import sys
 import tempfile
 import unittest
+import unittest.mock
 from urllib.error import HTTPError
 from urllib.parse import urlencode
 from urllib.request import Request, build_opener, ProxyHandler
 
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'scripts'))
+import rag_search
 from rag_search import SearchIndex, build, fts_query, source_metadata, handler_for, initial_document_cap
 from rag_embeddings import MiniLM, WordPiece, WINDOW, find_model
 from rag_copilot import retrieval_question, ModelUnavailable, verify_claims
@@ -36,6 +38,28 @@ class FixtureGenerator:
             return self.draft(data)
         return {'checks':[{'id':c['id'],'support':'supported' if self.supported else 'unsupported',
                            'answers_question':self.supported} for c in data['claims']]}
+
+
+class OriginTests(unittest.TestCase):
+    def tearDown(self):
+        rag_search.CODESPACE_HOST = rag_search.codespace_host_pattern()
+
+    def test_loopback_only_outside_codespaces(self):
+        rag_search.CODESPACE_HOST = None
+        self.assertTrue(rag_search.same_origin_request({'Host': '127.0.0.1:8765'}))
+        self.assertTrue(rag_search.same_origin_request({'Host': 'localhost:8765', 'Origin': 'http://localhost:8765'}))
+        self.assertFalse(rag_search.same_origin_request({'Host': 'localhost:8765', 'Origin': 'http://evil.example'}))
+        self.assertFalse(rag_search.same_origin_request({'Host': 'demo-8765.app.github.dev'}))
+
+    def test_only_this_codespace_forwarded_host_is_accepted(self):
+        with unittest.mock.patch.dict('os.environ', {'CODESPACE_NAME': 'demo',
+                                                      'GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN': 'app.github.dev'}):
+            rag_search.CODESPACE_HOST = rag_search.codespace_host_pattern()
+        host = 'demo-8765.app.github.dev'
+        self.assertTrue(rag_search.same_origin_request({'Host': host, 'Origin': 'https://' + host}))
+        self.assertFalse(rag_search.same_origin_request({'Host': host, 'Origin': 'http://' + host}))
+        self.assertFalse(rag_search.same_origin_request({'Host': 'other-8765.app.github.dev'}))
+        self.assertFalse(rag_search.same_origin_request({'Host': 'demo-8765.app.github.dev.evil.example'}))
 
 
 class RetrievalTests(unittest.TestCase):

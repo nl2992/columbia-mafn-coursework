@@ -14,6 +14,8 @@ from rag_embeddings import digest_file
 
 MODEL = os.environ.get('RAG_CHAT_MODEL', 'qwen3:4b')
 OLLAMA_URL = 'http://127.0.0.1:11434'
+# CPU-only hosts such as Codespaces need longer than a Mac GPU per model call.
+MODEL_TIMEOUT = int(os.environ.get('RAG_MODEL_TIMEOUT', '90'))
 MODEL_LOCK = threading.Lock()
 ABSTENTION = 'I’m abstaining: the available archive evidence does not support an answer to this question.'
 
@@ -30,12 +32,12 @@ class NoRedirect(HTTPRedirectHandler):
 class LocalGenerator:
     model = MODEL
 
-    def request(self, route, payload=None, timeout=90):
+    def request(self, route, payload=None, timeout=None):
         client = build_opener(ProxyHandler({}), NoRedirect())
         data = None if payload is None else json.dumps(payload).encode()
         try:
             with client.open(Request(OLLAMA_URL + route, data=data,
-                                     headers={'Content-Type': 'application/json'}), timeout=timeout) as response:
+                                     headers={'Content-Type': 'application/json'}), timeout=timeout or MODEL_TIMEOUT) as response:
                 raw = response.read(2_000_001)
             if len(raw) > 2_000_000:
                 raise ModelUnavailable('The local model response exceeded its size limit')
