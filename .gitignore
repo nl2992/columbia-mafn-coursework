@@ -47,3 +47,6 @@ scratch/
 
 # Rebuildable local RAG artifacts
 .rag/
+
+# Static GitHub Pages build output
+_site/

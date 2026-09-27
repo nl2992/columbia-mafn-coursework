@@ -2,11 +2,17 @@
 
 Organized course and program materials for the Columbia MAFN coursework archive.
 
-**[Start here: step-by-step Mac setup with screenshots — clone, Download ZIP, pull updates, and launch →](docs/SETUP.md)**
+### **[Open the archive in your browser → nl2992.github.io/columbia-mafn-coursework](https://nl2992.github.io/columbia-mafn-coursework/)**
 
-[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/nl2992/columbia-mafn-coursework?quickstart=1)
+The hosted site needs no install or sign-in, and everything runs in your browser:
 
-**No Mac? Run it in your browser.** The button above starts the full archive (search, Copilot and Data) in a GitHub Codespace. The first launch takes about 10–15 minutes, and the app opens on its own when it's ready. See [Run in GitHub Codespaces](docs/CODESPACES.md) for what to expect and what it costs.
+- **Library:** search every extracted page, slide, cell range and code block, then open the PDF at the cited page.
+- **Copilot:** ask questions and get answers with quotations checked against their sources. The Qwen3 model runs on your own GPU through WebGPU, so it needs current Chrome, Edge or Safari, plus a one-time 1.1–2.3 GB model download.
+- **Data:** calculate from the original workbook cells.
+
+Nothing you search or ask leaves your browser. The site's search is keyword-based. For semantic search, saved research, and adding documents, run the full app on a Mac. With no Mac, [open it in GitHub Codespaces](https://codespaces.new/nl2992/columbia-mafn-coursework?quickstart=1), which takes about 10–15 minutes to set up the first time ([details](docs/CODESPACES.md)).
+
+**Full app on a Mac:** [step-by-step Mac setup with screenshots — clone, Download ZIP, pull updates, and launch →](docs/SETUP.md)
 
 Each course folder contains its own `README.md` with the course map, module sequence, and links to the organized materials. Source filenames and explicit version variants are preserved unless a directory name was normalized for navigation.
 

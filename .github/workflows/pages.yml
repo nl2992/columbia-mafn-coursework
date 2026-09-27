@@ -1,0 +1,79 @@
+name: Publish the archive site
+
+# Builds the static archive (Pagefind search, in-browser Copilot and Data) from the index in the
+# `codespace-index` release plus the Git LFS course files, and deploys it to GitHub Pages.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'site/**'
+      - 'viewer/*.png'
+      - 'scripts/build_pages_site.py'
+      - 'scripts/rag_search.py'
+      - '.github/workflows/pages.yml'
+  release:
+    types: [published, edited]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    if: github.event_name != 'release' || github.event.release.tag_name == 'codespace-index'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      # Cache LFS objects by the list of LFS files so repeat builds don't re-download ~1.3 GB.
+      - name: List LFS objects
+        run: git lfs ls-files --long | cut -d' ' -f1 | sort > .lfs-objects
+      - uses: actions/cache@v6
+        with:
+          path: .git/lfs/objects
+          key: lfs-${{ hashFiles('.lfs-objects') }}
+          restore-keys: lfs-
+      - name: Fetch course files
+        run: git lfs pull
+
+      - name: Download the published index
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download codespace-index --pattern 'course-archive-index.tar.gz*' --dir /tmp/index
+          (cd /tmp/index && sha256sum --check course-archive-index.tar.gz.sha256)
+          tar -xzf /tmp/index/course-archive-index.tar.gz
+          built_from=$(python3 -c 'import json; print(json.load(open(".rag/codespace-index.json"))["commit"])')
+          if ! git diff --quiet "$built_from" HEAD -- 'Fall *' 'Spring *' 'Summer *' 'Winter *' 'Program-wide'; then
+            echo "::warning::Course files changed after the index was built (${built_from:0:7}). Republish it with scripts/package_codespace_index.sh --publish."
+          fi
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - name: Install build tools
+        run: python -m pip install --quiet -r rag/requirements-search.txt "pagefind[bin]==1.5.2"
+
+      - name: Build the site
+        run: python scripts/build_pages_site.py --out _site --ref "${{ github.event.repository.default_branch }}"
+
+      - uses: actions/configure-pages@v6
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5

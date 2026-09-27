@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Columbia MAFN Source Library</title>
+  <meta name="description" content="Search the Columbia MAFN coursework archive, open the exact cited page, ask a Copilot that runs in your browser, and calculate from the original workbook cells.">
+  <link rel="icon" href="course-archive-icon.png">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="masthead">
+    <a class="brand" href="./" aria-label="Columbia MAFN Source Library home"><img src="maf-logo.png" alt="Columbia University · Mathematics of Finance MA Program"></a>
+    <nav class="nav" aria-label="Sections">
+      <button class="nav-item is-active" type="button" data-view="library">Library</button>
+      <button class="nav-item" type="button" data-view="copilot">Copilot</button>
+      <button class="nav-item" type="button" data-view="data">Data</button>
+      <button class="nav-item" type="button" data-view="about">About</button>
+    </nav>
+    <div class="index-card" aria-live="polite">
+      <div class="index-status"><span class="status-dot" id="status-dot"></span><span id="index-status">Loading library…</span></div>
+      <div class="index-detail" id="index-detail">In your browser</div>
+    </div>
+  </header>
+
+  <main class="shell">
+    <!-- Library -->
+    <section class="view" id="view-library" aria-labelledby="library-title">
+      <div class="topbar">
+        <div><div class="eyebrow">THE COURSE LIBRARY</div><h1 id="library-title">Search the archive</h1><p class="page-description">Find an idea. Go straight to the source.</p></div>
+      </div>
+      <form class="search-row" id="search-form" role="search">
+        <label class="search-box"><span aria-hidden="true">⌕</span><input id="query" type="search" autocomplete="off" placeholder="Search concepts, equations, names, filenames…" aria-label="Search the archive"></label>
+        <button class="primary-button" type="submit">Search</button>
+      </form>
+      <div class="filters" id="filters">
+        <label>Course<select id="f-course" data-filter="course"><option value="">All courses</option></select></label>
+        <label>Term<select id="f-term" data-filter="term"><option value="">All terms</option></select></label>
+        <label>Material<select id="f-material" data-filter="material"><option value="">All materials</option></select></label>
+        <label>File type<select id="f-file_type" data-filter="file_type"><option value="">All file types</option></select></label>
+        <label class="check"><input type="checkbox" id="f-review"> Include solutions &amp; exams</label>
+      </div>
+      <div class="library-grid">
+        <aside class="panel results-panel">
+          <div class="panel-head"><h2>Sources</h2><span class="muted" id="results-count"></span></div>
+          <div id="results" class="results"><div class="empty"><div class="empty-mark">⌕</div><h3>Start with a course concept</h3><p>Try “change of numeraire”, “Girsanov”, or an exact filename.</p></div></div>
+          <button class="quiet-button more" id="more" hidden>Show more results</button>
+        </aside>
+        <section class="panel reader-panel" aria-label="Source reader">
+          <div class="reader-head">
+            <div><div class="eyebrow">ORIGINAL SOURCE</div><h2 id="reader-title">No source selected</h2><div class="muted small" id="reader-path"></div></div>
+            <div class="reader-actions" id="reader-actions" hidden>
+              <a class="quiet-button" id="reader-open" target="_blank" rel="noopener">Open original ↗</a>
+              <a class="quiet-button" id="reader-github" target="_blank" rel="noopener">View on GitHub ↗</a>
+            </div>
+          </div>
+          <div class="reader-stage" id="reader-stage"><div class="empty"><div class="empty-mark">▧</div><h3>Choose a citation</h3><p>The exact page opens here, with the matching passage.</p></div></div>
+        </section>
+      </div>
+    </section>
+
+    <!-- Copilot -->
+    <section class="view" id="view-copilot" hidden aria-labelledby="copilot-title">
+      <div class="topbar">
+        <div><div class="eyebrow">RESEARCH CONVERSATION</div><h1 id="copilot-title">Ask the course archive</h1><p class="page-description">Answers come only from archive passages, and every quotation is checked against its source. The model runs on your device; nothing you ask leaves your browser.</p></div>
+      </div>
+      <div class="notice" id="webgpu-notice" hidden></div>
+      <div class="panel copilot-settings">
+        <label>Answer model<select id="model">
+          <option value="Qwen3-4B-q4f16_1-MLC">Qwen3 4B · best answers · 2.3 GB download</option>
+          <option value="Qwen3-1.7B-q4f16_1-MLC">Qwen3 1.7B · lighter · 1.1 GB download</option>
+        </select></label>
+        <label>Course<select id="c-course"><option value="">All courses</option></select></label>
+        <label>Term<select id="c-term"><option value="">All terms</option></select></label>
+        <label class="check"><input type="checkbox" id="c-review"> Include solutions &amp; exams</label>
+      </div>
+      <div id="conversation" class="conversation"></div>
+      <form class="panel ask-form" id="ask-form">
+        <textarea id="ask" rows="3" placeholder="Ask about a concept, e.g. “What is the general change of numeraire?”" aria-label="Ask the course archive"></textarea>
+        <div class="ask-row">
+          <div class="muted small" id="model-status">The model downloads once on first use and is cached by your browser.</div>
+          <button class="primary-button" id="ask-submit" type="submit">Ask in browser →</button>
+        </div>
+        <div class="progress" id="model-progress" hidden><div class="progress-bar" id="model-progress-bar"></div></div>
+      </form>
+    </section>
+
+    <!-- Data -->
+    <section class="view" id="view-data" hidden aria-labelledby="data-title">
+      <div class="topbar">
+        <div><div class="eyebrow">THE COURSE LIBRARY</div><h1 id="data-title">Data workspace</h1><p class="page-description">Original cells, explicit calculations, and a source for every result.</p></div>
+      </div>
+      <form class="panel data-form" id="data-form">
+        <div class="step"><span class="step-no">1</span><div><div class="eyebrow">SELECT A SOURCE</div><h3>Choose the cells you want to inspect</h3></div></div>
+        <div class="grid-2">
+          <label>Workbook or dataset<select id="d-path"></select></label>
+          <label>Sheet<select id="d-sheet" disabled><option>Load a workbook first</option></select></label>
+        </div>
+        <label class="check"><input type="checkbox" id="d-review"> Include solutions &amp; exams</label>
+        <div class="step"><span class="step-no">2</span><div><div class="eyebrow">DEFINE THE QUERY</div><h3>Preview or calculate from an explicit range</h3></div></div>
+        <div class="grid-4">
+          <label>Cell range · blank = whole sheet<input id="d-range" placeholder="e.g. A2:B486"></label>
+          <label>Operation<select id="d-op"><option value="preview">Preview</option><option value="count">Count</option><option value="sum">Sum</option><option value="mean">Mean</option><option value="min">Min</option><option value="max">Max</option><option value="stddev">Standard deviation</option></select></label>
+          <label>Numeric column letter<input id="d-col" placeholder="e.g. B" maxlength="3"></label>
+          <label>Row filter column (optional)<input id="d-fcol" placeholder="e.g. B" maxlength="3"></label>
+        </div>
+        <div class="grid-4">
+          <label>Filter minimum (inclusive)<input id="d-min" inputmode="decimal"></label>
+          <label>Filter maximum (inclusive)<input id="d-max" inputmode="decimal"></label>
+          <label class="check"><input type="checkbox" id="d-header" checked> First row of range contains headers</label>
+          <div class="align-end"><button class="primary-button" id="d-run" type="submit">Run in browser →</button></div>
+        </div>
+        <div class="muted small" id="d-status">Choose a workbook to begin.</div>
+      </form>
+      <section class="panel" id="d-result" hidden>
+        <div class="result-head">
+          <div><div class="eyebrow">VERIFIED LOCAL RESULT</div><h2 id="d-value"></h2><div class="muted" id="d-summary"></div></div>
+          <div class="reader-actions"><button class="quiet-button" type="button" id="d-export">Export result</button><a class="quiet-button" id="d-original" target="_blank" rel="noopener">Open original ↗</a></div>
+        </div>
+        <h3 class="table-title" id="d-table-title">Source cells</h3>
+        <div class="table-wrap"><table id="d-table"></table></div>
+      </section>
+    </section>
+
+    <!-- About -->
+    <section class="view" id="view-about" hidden aria-labelledby="about-title">
+      <div class="topbar">
+        <div><div class="eyebrow">THE COURSE LIBRARY</div><h1 id="about-title">About this edition</h1><p class="page-description">A static build of the archive's local research app, hosted on GitHub Pages.</p></div>
+      </div>
+      <div class="stats" id="stats"></div>
+      <div class="panel prose">
+        <h2>How it works</h2>
+        <ul>
+          <li><strong>Library</strong> searches a prebuilt index of every extracted page, slide, cell range and code block. Search runs in your browser, loading only the index pieces a query needs.</li>
+          <li><strong>Copilot</strong> retrieves passages from that index and asks Qwen3, which runs on your GPU through WebLLM, to answer from them alone. A claim is kept only if its quotation appears word for word in the cited passage. If nothing survives, it declines to answer.</li>
+          <li><strong>Data</strong> opens the original workbook with SheetJS and runs the operation you choose on the exact range you give.</li>
+        </ul>
+        <h2>Differences from the Mac app</h2>
+        <ul>
+          <li>Search is keyword-based. The Mac app also uses MiniLM semantic similarity, so it finds more paraphrases.</li>
+          <li>The Copilot needs a browser with WebGPU (current Chrome, Edge, or Safari) and a one-time model download.</li>
+          <li>Conversations and saved passages aren't stored. Nothing you search, ask, or compute leaves your browser.</li>
+          <li>ZIP archives and a few very large files open from GitHub instead of from this site.</li>
+        </ul>
+        <p>For semantic search, saved research, and adding documents, run the full app on a Mac or in <a href="https://github.com/nl2992/columbia-mafn-coursework/blob/main/docs/CODESPACES.md">GitHub Codespaces</a>.</p>
+      </div>
+    </section>
+  </main>
+  <div class="toast" id="toast" role="status" hidden></div>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
