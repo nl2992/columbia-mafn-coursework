@@ -4,6 +4,10 @@ Organized course and program materials for the Columbia MAFN coursework archive.
 
 **[Start here: step-by-step Mac setup with screenshots — clone, Download ZIP, pull updates, and launch →](docs/SETUP.md)**
 
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/nl2992/columbia-mafn-coursework?quickstart=1)
+
+**No Mac? Run it in your browser.** The button above starts the full archive (search, Copilot and Data) in a GitHub Codespace. The first launch takes about 10–15 minutes, and the app opens on its own when it's ready. See [Run in GitHub Codespaces](docs/CODESPACES.md) for what to expect and what it costs.
+
 Each course folder contains its own `README.md` with the course map, module sequence, and links to the organized materials. Source filenames and explicit version variants are preserved unless a directory name was normalized for navigation.
 
 ## Local RAG research assistant

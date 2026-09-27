@@ -310,7 +310,10 @@ class SearchIndex:
         self.windows=np.load(self.directory/'windows.npy',mmap_mode='r',allow_pickle=False)
         if len(self.owners)!=len(self.vectors) or self.vectors.shape[1]!=self.report['dimension']:
             raise ValueError('Vector index shape mismatch; rebuild')
-        self.model_dir=model_dir or self.report['model_dir']
+        # The build records its absolute model path; on another machine (e.g. a Codespace using a
+        # downloaded index) use the project model instead. The fingerprint check still guards the weights.
+        recorded=self.report['model_dir']
+        self.model_dir=model_dir or (recorded if Path(recorded).is_dir() else None)
         self.model=None
         self.aliases=defaultdict(list)
         for row in self.db.execute('SELECT * FROM sources ORDER BY path'):

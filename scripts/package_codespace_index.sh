@@ -29,7 +29,7 @@ members=(.rag/codespace-index.json .rag/manifest.jsonl .rag/chunks.jsonl .rag/ex
 for name in extraction-report.json rich-extraction-report.json review-queue.jsonl operations-review.jsonl; do
   [[ -f ".rag/${name}" ]] && members+=(".rag/${name}")
 done
-COPYFILE_DISABLE=1 tar -czf "${out}" "${members[@]}"
+COPYFILE_DISABLE=1 tar --no-xattrs --no-mac-metadata -czf "${out}" "${members[@]}"
 (cd dist && shasum -a 256 course-archive-index.tar.gz > course-archive-index.tar.gz.sha256)
 echo "Packaged generation ${generation} (commit ${commit:0:7}): $(du -h "${out}" | cut -f1)"
 

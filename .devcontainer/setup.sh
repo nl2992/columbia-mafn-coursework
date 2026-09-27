@@ -12,14 +12,14 @@ ollama_version="v0.33.3"
 ollama_sha256="c13cea8f3389db4145f8a6cb88d1747242a48639d7c13e3bda7c1ebdc6eebb2f"
 minilm_snapshot="1110a243fdf4706b3f48f1d95db1a4f5529b4d41"
 repository="${GITHUB_REPOSITORY:-$(git remote get-url origin | sed -E 's#(git@github.com:|https://github.com/)##; s#\.git$##')}"
-index_url="https://github.com/${repository}/releases/download/codespace-index"
+index_url="${RAG_INDEX_URL:-https://github.com/${repository}/releases/download/codespace-index}"
 
 echo "[1/6] Installing document tools"
 sudo apt-get update -qq
 sudo apt-get install -y -qq --no-install-recommends poppler-utils tesseract-ocr zstd >/dev/null
 
 echo "[2/6] Fetching Git LFS course files"
-git lfs install --local >/dev/null
+git lfs install --skip-repo >/dev/null
 git lfs pull
 
 echo "[3/6] Installing pinned Python packages into .rag/runtime"
