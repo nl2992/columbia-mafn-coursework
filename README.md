@@ -133,6 +133,16 @@ The refresh reuses unchanged extraction and embeddings, records added/changed/de
 | MATHGR5450 | Credit Analytics | [Course README](<Spring 2026/MATHGR5450 - Credit Analytics/README.md>) |
 | STATGR5265 | Stochastic Methods in Finance | [Course README](<Spring 2026/STATGR5265 - Stochastic Methods in Finance/README.md>) |
 
+## Fall 2026
+
+| Course | Focus | Documentation |
+| --- | --- | --- |
+| IEOR4735 | Continuous Time Finance | [Course README](<Fall 2026/IEOR4735 - Continuous Time Finance/README.md>) |
+| MATHGR5400 | Nonlinear Option Pricing | [Course README](<Fall 2026/MATHGR5400 - Nonlinear Option Pricing/README.md>) |
+| MATHGR5521 | Topics in Mathematical Finance | [Course README](<Fall 2026/MATHGR5521 - Topics in Mathematical Finance/README.md>) |
+| STATGR5263 | Statistical Inference & Time Series Modeling | [Course README](<Fall 2026/STATGR5263 - Statistical Inference & Time Series Modeling/README.md>) |
+| STATGR5293 | Statistical Aspects of Finance | [Course README](<Fall 2026/STATGR5293 - Statistical Aspects of Finance/README.md>) |
+
 ## Program-wide materials
 
 | Collection | Contents | Documentation |
