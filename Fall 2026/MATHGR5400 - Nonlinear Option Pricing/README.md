@@ -9,8 +9,9 @@ Taught by Julien Guyon and Bryan Liang. The course covers the nonlinear PDEs tha
 
 ## Course map
 
-- [`lectures/`](lectures/): `NonlinearOptionPricing_LectureNotes_Columbia_2026.pdf`
+- [`lectures/`](lectures/): `NonlinearOptionPricing_LectureNotes_Columbia_2026.pdf` (141-page revision, updated 6 October 2026)
 - [`assignments/`](assignments/): Homework I notebook (`HW1-2026-Columbia.ipynb`) on conditional expectation via parametric and nonparametric regression, due 2 October 2026, 6:00 PM, submitted on CourseWorks after *Run all cells*
+- [`assignments/`](assignments/): Homework II notebook (`HW2-2026-Columbia.ipynb`) on the dual problem and upper bounds for American/Bermudan options (Andersen–Broadie nested simulation, Longstaff–Schwartz and TVR upper bounds, Bermudan-Asian call duality gaps), due 15 October 2026, 11:59 PM
 - [`setup/`](setup/): Python and Jupyter setup instructions (converted from the CourseWorks HTML page) and the PyTorch and TensorFlow test notebooks
 
 ## Access note
